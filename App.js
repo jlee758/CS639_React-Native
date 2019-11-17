@@ -14,6 +14,7 @@ import ViewMeals from './screens/ViewMeals';
 import Meals from './screens/Meals';
 import ViewFoods from './screens/ViewFoods';
 import Foods from './screens/Foods';
+import PastSummary from './screens/PastSummary';
 
 const MainNavigator = createStackNavigator(
 	{
@@ -25,7 +26,8 @@ const MainNavigator = createStackNavigator(
 		ViewMeals: {screen: ViewMeals},
 		Meals: {screen: Meals},
 		ViewFoods: {screen: ViewFoods},
-		Foods: {screen: Foods}
+		Foods: {screen: Foods},
+		Summary: {screen: PastSummary}
 	},
 	{
 		initialRouteName: 'Today',

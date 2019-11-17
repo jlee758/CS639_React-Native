@@ -89,6 +89,10 @@ class ViewActivities extends React.Component {
 						}
 					}
 					
+					if(min < 10) {
+						min = "0" + min;
+					}
+					
 					//only return activities for the current date
 					if(date === this.date.toDateString()) {
 						activityOutput.push(

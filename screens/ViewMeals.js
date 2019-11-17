@@ -18,6 +18,7 @@ class ViewMeals extends React.Component {
 		super(props);
 		this.state = {
 			meals: {},
+			foods: this.props.navigation.state.params.foods,
 			message: {},
 		}
 		this.token = this.props.navigation.state.params.token;
@@ -85,14 +86,52 @@ class ViewMeals extends React.Component {
 						}
 					}
 					
+					if(min < 10) {
+						min = "0" + min;
+					}
+					
 					//only return meals for the current date
 					if(date === this.date.toDateString()) {
+						let sumCalGain = 0;
+						let sumCarbs = 0;
+						let sumFat = 0;
+						let sumProtein = 0;
+						
+						//if user came from currDay, then the food object was updated
+						if(this.props.navigation.state.params.fromHome) {
+							for(const foodId of Object.entries(this.state.foods)) {
+								if(foodId[0] == id) {
+									for(const foodInnerId of Object.entries(foodId[1])) {
+										for(const food of Object.entries(foodInnerId[1])) {
+											if(food[0] === "calories") {
+												sumCalGain += food[1];
+											} else if (food[0] === "carbohydrates") {
+												sumCarbs += food[1];
+											} else if (food[0] === "fat") {
+												sumFat += food[1];
+											} else if (food[0] === "protein") {
+												sumProtein += food[1];
+											}
+										}
+									}
+								}
+							}
+						//else, use the aggregated nutrients retrieved from ViewFoods
+						} else {
+							if(id === this.props.navigation.state.params.updateId) {
+								sumCalGain = this.props.navigation.state.params.sumCal;
+								sumCarbs = this.props.navigation.state.params.sumCarbs;
+								sumFat = this.props.navigation.state.params.sumFat;
+								sumProtein = this.props.navigation.state.params.sumProtein;
+							}
+						}
+						
 						mealOutput.push(
 							<React.Fragment key={dataId[0]}>
 								<Button
 									buttonStyle={styles.mealButton}
 									textStyle={styles.buttonText}
-									text={name + "\n" + date + " (" + hour + ":" + min + ")"}
+									text={name + "\n" + date + " (" + hour + ":" + min + ")\n" + sumCalGain + " cal\n" + sumCarbs + " carbohydrates\n" + sumFat + " fat\n" + sumProtein + " protein"}
 									onPress={() => this.props.navigation.navigate("ViewFoods", {
 										token: this.token,
 										currId: id,
@@ -222,7 +261,7 @@ const styles = StyleSheet.create({
 	}, 
 	mealButton: {
 		width: Dimensions.get('window').width * 0.7,
-		height: 80,
+		height: 150,
 		margin: 10,
 		justifyContent: 'center',
 		alignItems: 'center',

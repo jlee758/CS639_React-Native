@@ -120,7 +120,7 @@ class Activities extends React.Component {
 				'x-access-token': this.token,
 			};
 			let url = "https://mysqlcs639.cs.wisc.edu/activities";
-			let tempDate = new Date(parseInt(this.state.date.substr(0,4)), parseInt(this.state.date.substr(5,7)) - 1, parseInt(this.state.date.substr(8,10)), parseInt(this.state.date.substr(11,13)), parseInt(this.state.date.substr(14)), 0).toISOString();
+			let tempDate = new Date(parseInt(this.state.date.substr(0,4)), parseInt(this.state.date.substr(5,7)) - 1, parseInt(this.state.date.substr(8,10)), parseInt(this.state.date.substr(11,13)), parseInt(this.state.date.substr(13)), 0).toISOString();
 			
 			await fetch(url, {
 				method: 'POST',

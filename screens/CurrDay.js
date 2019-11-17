@@ -17,8 +17,6 @@ class CurrDay extends React.Component {
 			meals: {},
 			foods: {},
 			date: new Date(),
-			firstName: "",
-			lastName: "",
 			dailyActivity: 0.0,
 			dailyCalories: 0.0,
 			dailyCarbs: 0.0,
@@ -59,8 +57,6 @@ class CurrDay extends React.Component {
 		.then((response) => response.json())
 		.then((responseData) => {
 			this.setState({
-				firstName: responseData.firstName,
-				lastName: responseData.lastName,
 				dailyActivity: responseData.goalDailyActivity,
 				dailyCalories: responseData.goalDailyCalories,
 				dailyCarbs: responseData.goalDailyCarbohydrates,
@@ -296,6 +292,15 @@ class CurrDay extends React.Component {
 				<Text style={styles.textDesc}>
 					Net calorie gain: {sumCalGain - sumCalBurn}
 				</Text>
+				<Button
+					buttonStyle={styles.button}
+					textStyle={styles.buttonText}
+					text={"View past 7 days"}
+					onPress={() => this.props.navigation.navigate("Summary", {
+						username: this.username,
+						token: this.token
+					})}
+				/>
 				</React.Fragment>
 			);
 		}
@@ -385,7 +390,9 @@ class CurrDay extends React.Component {
 						text={"View meals"}
 						onPress={() => this.props.navigation.navigate("ViewMeals", {
 							token: this.token,
-							date: this.state.date
+							date: this.state.date,
+							foods: this.state.foods,
+							fromHome: true
 						})}
 					/>
 
@@ -466,7 +473,8 @@ const styles = StyleSheet.create({
 	},
 	textDesc: {
 		fontSize: 18,
-		color: '#6327AD'
+		color: '#6327AD',
+		padding: 5
 	},
 	textGraph: {
 		textAlign: 'center',

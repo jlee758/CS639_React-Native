@@ -18,7 +18,11 @@ class ViewFoods extends React.Component {
 		super(props);
 		this.state = {
 			foods: {},
-			message: {}
+			message: {},
+			sumCal: 0,
+			sumCarbs: 0,
+			sumFat: 0,
+			sumProtein: 0
 		}
 		this.token = this.props.navigation.state.params.token;
 		this.mealName = this.props.navigation.state.params.currName;
@@ -28,13 +32,18 @@ class ViewFoods extends React.Component {
 	}
 	
 	//call getFoods to render components
-	componentDidMount() {
+	//call outputFoods(true) to get sum of all calories, carbs, etc.
+	componentWillMount() {
 		this._isMounted = true;
-		this.getFoods();
+		this.focusListener = this.props.navigation.addListener('didFocus', () => {
+			this.getFoods();
+			this.outputFoods(true);
+		});
 	}
 	
 	componentWillUnmount() {
 		this._isMounted = false;
+		this.focusListener.remove();
 	}
 	
 	//Store all foods in an object (needed to check for duplicates)
@@ -63,10 +72,16 @@ class ViewFoods extends React.Component {
 	}
 	
 	//returns all created foods as clickable buttons
-	outputFoods() {
+	outputFoods(onMount) {
 		if(this._isMounted) {
 			this.getFoods();
 			let foodOutput = [];
+			
+			//holds the sum of the nutrients for passing to ViewMeals
+			let tempCal = 0;
+			let tempCarbs = 0;
+			let tempFat = 0;
+			let tempProtein = 0;
 			
 			if(this.state.foods !== undefined && this.state.foods !== null) {
 				for(const dataId of Object.entries(this.state.foods)) {
@@ -78,41 +93,57 @@ class ViewFoods extends React.Component {
 							id = data[1];
 						} else if (data[0] === "calories") {
 							calories = data[1];
+							tempCal += data[1];
 						} else if (data[0] === "protein") {
 							protein = data[1];
+							tempProtein += data[1];
 						} else if (data[0] === "carbohydrates") {
 							carbs = data[1];
+							tempCarbs += data[1];
 						} else if (data[0] === "fat") {
 							fat = data[1];
+							tempFat += data[1];
 						}
 					}
-					foodOutput.push(
-						<React.Fragment key={dataId[0]}>
-							<Button
-								buttonStyle={styles.foodButton}
-								textStyle={styles.buttonText}
-								text={name + "\n" + calories + " cals\n" + carbs + " carbs\n" + protein + " protein\n" + fat + " fat"}
-								onPress={() => this.props.navigation.navigate("Foods", {
-									token: this.token,
-									currId: id,
-									currName: name,
-									currCal: calories,
-									currCarbs: carbs,
-									currProtein: protein,
-									currFat: fat,
-									typeUpdate: true,
-									mealId: this.id
-								})}
-							/>
-						</React.Fragment>
-					);
+					
+					if(!onMount) {
+						foodOutput.push(
+							<React.Fragment key={dataId[0]}>
+								<Button
+									buttonStyle={styles.foodButton}
+									textStyle={styles.buttonText}
+									text={name + "\n" + calories + " cals\n" + carbs + " carbs\n" + protein + " protein\n" + fat + " fat"}
+									onPress={() => this.props.navigation.navigate("Foods", {
+										token: this.token,
+										currId: id,
+										currName: name,
+										currCal: calories,
+										currCarbs: carbs,
+										currProtein: protein,
+										currFat: fat,
+										typeUpdate: true,
+										mealId: this.id
+									})}
+								/>
+							</React.Fragment>
+						);
 					}
 				}
-			//indicate to the user that no foods exist yet
-			if(foodOutput.length === 0) {
-				return (<Text style={styles.textDesc}>No foods found!</Text>);
 			}
-			return foodOutput;
+
+			if(onMount) {
+				this.setState({
+					sumCal: tempCal,
+					sumCarbs: tempCarbs,
+					sumFat: tempFat,
+					sumProtein: tempProtein
+				});
+			//indicate to the user that no foods exist yet
+			} else if(foodOutput.length === 0) {
+				return (<Text style={styles.textDesc}>No foods found!</Text>);
+			} else {
+				return foodOutput;
+			}
 		}
 	}
 	
@@ -123,7 +154,14 @@ class ViewFoods extends React.Component {
 					{/*Navigation controls*/}
 					<View style={styles.backButtonContainer}>
 						<TouchableOpacity
-							onPress={() => this.props.navigation.goBack()}
+							onPress={() => this.props.navigation.navigate("ViewMeals", {
+								fromHome: false,
+								updateId: this.id,
+								sumCal: this.state.sumCal,
+								sumCarbs: this.state.sumCarbs,
+								sumFat: this.state.sumFat,
+								sumProtein: this.state.sumProtein
+							})}
 							style={styles.backButton}
 						>
 							<Ionicons name="md-arrow-back" size={40} color={'#27ADA0'} />
@@ -153,8 +191,10 @@ class ViewFoods extends React.Component {
 					
 					{/*List of interactible foods*/}
 					<ScrollView style={styles.scrollView} contentContainerStyle={{ alignItems: 'center' }}>
-						{this.outputFoods()}
+						{this.outputFoods(false)}
 					</ScrollView>
+					
+					{/*Food navigation Buttons*/}
 					<Button
 						buttonStyle={styles.button}
 						textStyle={styles.buttonText}

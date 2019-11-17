@@ -70,6 +70,34 @@ class Foods extends React.Component {
 					}
 				}
 			}
+			if (this.state.calories === '') {
+				Alert.alert(
+					'Missing input', 'Please enter calories',
+					[ {text: 'OK'} ]
+				);
+				return false;
+			}
+			if (this.state.carbs === '') {
+				Alert.alert(
+					'Missing input', 'Please enter carbohydrates',
+					[ {text: 'OK'} ]
+				);
+				return false;
+			}
+			if (this.state.protein === '') {
+				Alert.alert(
+					'Missing input', 'Please enter protein',
+					[ {text: 'OK'} ]
+				);
+				return false;
+			}
+			if (this.state.fat === '') {
+				Alert.alert(
+					'Missing input', 'Please enter fat',
+					[ {text: 'OK'} ]
+				);
+				return false;
+			}
 			return true;
 		}
 	}
