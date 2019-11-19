@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import Button from '../Button';
 import Profile from './Profile';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import styles from '../styles/Settings.style.js';
+import darkStyles from '../styles/Settings.darkStyle.js';
 
 class Settings extends React.Component {
 	constructor(props) {
@@ -12,6 +14,7 @@ class Settings extends React.Component {
 		}
 		this.username = this.props.navigation.getParam('username', 'undefined');
 		this.token = this.props.navigation.getParam('token', 'undefined');
+		this.visible = this.props.navigation.state.params.visible;
 	}
 	
 	//deletes the account after user confirmation
@@ -74,90 +77,61 @@ class Settings extends React.Component {
 		);
 	}
 	
-	render() {
+	//render() method, dependent on styles whether accessibility is enabled
+	returnRender(container, backBtnContainer, backBtn, btnSize, btnColor, textStyle, btn, btnText, btnDanger) {
 		return (
-			<View style={styles.container}>
-				<View style={styles.backButtonContainer}>
+			<View style={container}>
+				<View style={backBtnContainer}>
 					<TouchableOpacity
 						onPress={() => this.props.navigation.goBack()}
-						style={styles.backButton}
+						style={backBtn}
 					>
-						<Ionicons name="md-arrow-back" size={40} color={'#27ADA0'} />
+						<Ionicons name="md-arrow-back" size={btnSize} color={btnColor} />
 					</TouchableOpacity>
 				</View>
-				<Text style={styles.textStyle}>
+				<Text style={textStyle}>
 					Settings
 				</Text>
 				<Button
-					buttonStyle={styles.button}
-					textStyle={styles.buttonText}
+					buttonStyle={btn}
+					textStyle={btnText}
 					text={'View profile'}
 					onPress={() => this.props.navigation.navigate('Profile', {
 						username: this.username,
-						token: this.token
+						token: this.token,
+						visible: this.visible
 					})}
 				/>
 				<Button
-					buttonStyle={styles.button}
-					textStyle={styles.buttonText}
+					buttonStyle={btn}
+					textStyle={btnText}
 					text={'Log out'}
 					onPress={() => this.confirmLogout()}
 				/>
 				<Button
-					buttonStyle={styles.buttonDanger}
-					textStyle={styles.buttonText}
+					buttonStyle={btnDanger}
+					textStyle={btnText}
 					text={'Delete profile'}
 					onPress={() => this.confirmDelete()}
 				/>
 			</View>
 		);
 	}
-}
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center'
-	}, 
-	backButtonContainer: {
-		position: 'absolute',
-		top: 70,
-		left: 10
-	},
-	backButton: {
-		alignItems: 'center',
-		width: 50,
-		height: 50
-	},
-	button: {
-		width: 200,
-		height: 50,
-		margin: 10,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 5,
-		backgroundColor: '#27ADA0'
-	}, 
-	buttonDanger: {
-		width: 200,
-		height: 50,
-		margin: 10,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 5,
-		backgroundColor: '#AD272D'
-	},
-	buttonText: {
-		fontSize: 18,
-		fontWeight: '300',
-		color: 'white'
-	},
-	textStyle: {
-		fontSize: 35,
-		color: '#27ADA0',
-		padding: 20
+	
+	render() {
+		//if accessibility is enabled:
+		if(this.visible) {
+			return (
+				this.returnRender(darkStyles.container, darkStyles.backButtonContainer, darkStyles.backButton, 100, '#1a1a1a', darkStyles.textStyle,
+					darkStyles.button, darkStyles.buttonText, darkStyles.buttonDanger)
+			);
+		} else {
+			return (
+				this.returnRender(styles.container, styles.backButtonContainer, styles.backButton, 40, '#27ADA0', styles.textStyle,
+					styles.button, styles.buttonText, styles.buttonDanger)
+			);
+		}
 	}
-})
+}
 
 export default Settings;

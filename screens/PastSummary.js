@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ScrollView} from 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LineChart, Grid, XAxis, YAxis } from 'react-native-svg-charts';
 import { Line } from 'react-native-svg';
+import styles from '../styles/PastSummary.style.js';
+import darkStyles from '../styles/PastSummary.darkStyle.js';
 
 class PastSummary extends React.Component {
 	_isMounted = false;
@@ -21,6 +23,7 @@ class PastSummary extends React.Component {
 		}
 		this.username = this.props.navigation.state.params.username;
 		this.token = this.props.navigation.state.params.token;
+		this.visible = this.props.navigation.state.params.visible;
 	}
 	
 	//ensure no updating state on unmounted components
@@ -152,9 +155,10 @@ class PastSummary extends React.Component {
 	}	
 	
 	//base code for getting the graph of the summaries
-	outputGraphs(currGoal, currType, currData) {
+	outputGraphs(currGoal, currType, currData, lineColor, graphColor, textDesc, graphContainer, fntSize) {
 		//shows a straight line for each graph indicating the metric's goal
 		//if all days had values less than the goal, then the goal line will not show on the graph
+		//(if no goal line appears, then the user never achieved their goal in the past 7 days)
 		const GoalLine = (({ y }) => (
 			<Line
 				key={ 'zero-axis' }
@@ -162,7 +166,7 @@ class PastSummary extends React.Component {
 				x2={ '100%' }
 				y1={ y(currGoal) }
 				y2={ y(currGoal) }
-				stroke={'#6327AD'}
+				stroke={lineColor}
 				strokeDashArray={ [4, 8] }
 				strokeWidth={ 2 }
 			/>
@@ -171,25 +175,25 @@ class PastSummary extends React.Component {
 		return(
 			<React.Fragment>
 				{/*Graph title*/}
-				<Text style={styles.textDesc}>
+				<Text style={textDesc}>
 					{currType}
 				</Text>
-				<Text style={styles.textDesc}>
+				<Text style={textDesc}>
 					for each day since today
 				</Text>
 				
-				<View style={styles.graphContainer}>
+				<View style={graphContainer}>
 					<YAxis
 						data={currData}
 						style={{ marginBottom: 30 }}
 						contentInset={{ top: 10, bottom: 10 }}
-						svg={{ fontSize: 10, fill: '#27ADA0' }}
+						svg={{ fontSize: fntSize, fill: graphColor }}
 					/>
 					<View style={{ flex: 1, marginLeft: 10 }}>
 						<LineChart
 							style={{ flex: 1 }}
 							data={currData}
-							svg={{ stroke: '#27ADA0' }}
+							svg={{ stroke: graphColor }}
 							contentInset={{ top: 10, bottom: 10 }}
 						>
 							<Grid />
@@ -201,7 +205,7 @@ class PastSummary extends React.Component {
 							data={currData}
 							formatLabel={(value, index) => (index - 6)}
 							contentInset={{ left: 10, right: 10 }}
-							svg={{ fontSize: 10, fill: '#27ADA0' }}
+							svg={{ fontSize: fntSize, fill: graphColor }}
 						/>
 					</View>
 				</View>
@@ -210,7 +214,7 @@ class PastSummary extends React.Component {
 	}
 	
 	//gets the aggregated summary for each day, and outputs the corresponding graphs
-	outputSummary() {
+	outputSummary(lineColor, graphColor, textDesc, graphContainer, fntSize) {
 		if(this._isMounted) {
 			//each element of daySummaries corresponds to a day within the past 7 days
 			//each element holds another array of data
@@ -322,133 +326,129 @@ class PastSummary extends React.Component {
 			//return the graphs
 			return (
 				<React.Fragment>
-					{this.outputGraphs(this.state.dailyActivity, "Duration", durationData)}
-					{this.outputGraphs(this.state.dailyCalories, "Calories burnt", calBurnData)}
-					{this.outputGraphs(this.state.dailyCalories, "Calories gained", calGainData)}
-					{this.outputGraphs(this.state.dailyCarbs, "Carbohydrates", carbData)}
-					{this.outputGraphs(this.state.dailyFat, "Fat", fatData)}
-					{this.outputGraphs(this.state.dailyProtein, "Protein", proteinData)}
+					{this.outputGraphs(this.state.dailyActivity, "Duration", durationData, lineColor, graphColor, textDesc, graphContainer, fntSize)}
+					{this.outputGraphs(this.state.dailyCalories, "Calories burnt", calBurnData, lineColor, graphColor, textDesc, graphContainer, fntSize)}
+					{this.outputGraphs(this.state.dailyCalories, "Calories gained", calGainData, lineColor, graphColor, textDesc, graphContainer, fntSize)}
+					{this.outputGraphs(this.state.dailyCarbs, "Carbohydrates", carbData, lineColor, graphColor, textDesc, graphContainer, fntSize)}
+					{this.outputGraphs(this.state.dailyFat, "Fat", fatData, lineColor, graphColor, textDesc, graphContainer, fntSize)}
+					{this.outputGraphs(this.state.dailyProtein, "Protein", proteinData, lineColor, graphColor, textDesc, graphContainer, fntSize)}
 				</React.Fragment>
 			);
 		}
 	}
 	
 	//display which days are considered in the 7 day summary
-	dateHeader() {
+	dateHeader(textTitle, textStyle) {
 		let currDate = new Date();
 		let firstDate = new Date();
 		firstDate.setDate(firstDate.getDate() - 6);
 		
 		return(
 			<React.Fragment>
-				<Text style={styles.textStyle}>
+				<Text style={textTitle}>
 					{firstDate.toDateString()}
 				</Text>
-				<Text style={styles.textStyle}>
+				<Text style={textStyle}>
 					to
 				</Text>
-				<Text style={styles.textStyle}>
+				<Text style={textTitle}>
 					{currDate.toDateString()}
 				</Text>
 			</React.Fragment>
 		);
 	}
 	
-	render() {
-		if(this._isMounted) {
+	//if accessibility is enabled, rearrange navigation controls into a row at the top of the screen
+	navControls(backBtnContainer, backBtn, btnSize, btnColor, setContainer, setBtn) {
+		if(this.visible) {
 			return (
-				<View style={styles.container}>
-					{/*Navigation controls*/}
-					<View style={styles.backButtonContainer}>
+				<React.Fragment>
+					<View style={darkStyles.row}>
+						{/*Go back*/}
 						<TouchableOpacity
 							onPress={() => this.props.navigation.goBack()}
-							style={styles.backButton}
+							style={backBtn}
 						>
-							<Ionicons name="md-arrow-back" size={40} color={'#27ADA0'} />
+							<Ionicons name="md-arrow-back" size={btnSize} color={btnColor} />
 						</TouchableOpacity>
-					</View>
-					<View style={styles.settingsContainer}>
+						{/*Settings*/}
 						<TouchableOpacity
 							onPress={() => this.props.navigation.navigate("Settings", {
 								username: this.username,
-								token: this.token
+								token: this.token,
+								visible: this.visible
 						})}
-							style={styles.settingButton}
+							style={setBtn}
 						>
-							<Ionicons name="md-settings" size={40} color={'#27ADA0'} />
+							<Ionicons name="md-settings" size={btnSize} color={btnColor} />
 						</TouchableOpacity>
 					</View>
-					
-					<Text style={styles.textTitle}>
-						Statistics for past 7 days
-					</Text>
-					
-					<ScrollView style={styles.scrollView} contentContainerStyle={{ alignItems: 'center' }}>
-						{/*Summary section*/}
-						{this.dateHeader()}
-						<Text></Text>
-						{this.outputSummary()}
-						<Ionicons name="md-remove" size={30} color={'white'} />
-					</ScrollView>
-				</View>
+				</React.Fragment>
 			);
+		} else {
+			return (
+				<React.Fragment>
+					{/*Navigation controls*/}
+					<View style={backBtnContainer}>
+						<TouchableOpacity
+							onPress={() => this.props.navigation.goBack()}
+							style={backBtn}
+						>
+							<Ionicons name="md-arrow-back" size={btnSize} color={btnColor} />
+						</TouchableOpacity>
+					</View>
+					<View style={setContainer}>
+						<TouchableOpacity
+							onPress={() => this.props.navigation.navigate("Settings", {
+								username: this.username,
+								token: this.token,
+								visible: this.visible
+						})}
+							style={setBtn}
+						>
+							<Ionicons name="md-settings" size={btnSize} color={btnColor} />
+						</TouchableOpacity>
+					</View>
+				</React.Fragment>
+			);
+		}
+	}
+	
+	returnRender(backBtnContainer, backBtn, btnSize, btnColor, setContainer, setBtn, txtTitle, txtStyle, scrollView,
+		lineColor, graphColor, textDesc, graphContainer, fntSize) {
+		return (
+			<View style={styles.container}>				
+				{this.dateHeader(txtTitle, txtStyle)}
+				
+				{this.navControls(backBtnContainer, backBtn, btnSize, btnColor, setContainer, setBtn)}
+				
+				<ScrollView style={scrollView} contentContainerStyle={{ alignItems: 'center' }}>
+					{/*Summary section*/}
+					<Text></Text>
+					{this.outputSummary(lineColor, graphColor, textDesc, graphContainer, fntSize)}
+					<Ionicons name="md-remove" size={30} color={'white'} />
+				</ScrollView>
+			</View>
+		);
+	}
+	
+	render() {
+		if(this._isMounted) {
+			if(this.visible) {
+				return (
+					this.returnRender(darkStyles.backButtonContainer, darkStyles.backButton, 100, '#1a1a1a', darkStyles.settingsContainer, darkStyles.settingButton, 
+						darkStyles.textTitle, darkStyles.textStyle, darkStyles.scrollView, '#AD272D', '#1a1a1a', darkStyles.textDesc, darkStyles.graphContainer, 15)
+				);
+			} else {
+				return (
+					this.returnRender(styles.backButtonContainer, styles.backButton, 40, '#27ADA0', styles.settingsContainer, styles.settingButton, styles.textTitle,
+						styles.textStyle, styles.scrollView, '#6327AD', '#27ADA0', styles.textDesc, styles.graphContainer, 10)
+				);
+			}
 		} else {
 			return(<View></View>);
 		}
 	}
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center'
-	},
-	backButtonContainer: {
-		position: 'absolute',
-		top: 70,
-		left: 10
-	},
-	backButton: {
-		alignItems: 'center',
-		width: 50,
-		height: 50
-	},
-	settingsContainer: {
-		position: 'absolute',
-		top: 70,
-		right: 10
-	},
-	settingButton: {
-		alignItems: 'center',
-		width: 50,
-		height: 50
-	},
-	textTitle: {
-		fontSize: 30,
-		color: '#27ADA0',
-		padding: 20,
-		fontWeight: 'bold',
-		textDecorationLine: 'underline'
-	},
-	textStyle: {
-		fontSize: 25,
-		color: '#27ADA0',
-		padding: 2
-	},
-	textDesc: {
-		fontSize: 18,
-		color: '#6327AD'
-	},
-	scrollView: {
-		flex: 1,
-		width: Dimensions.get('window').width * 0.8
-	},
-	graphContainer: {
-		height: 300,
-		padding: 20,
-		flexDirection: 'row',
-	}
-})
 
 export default PastSummary;

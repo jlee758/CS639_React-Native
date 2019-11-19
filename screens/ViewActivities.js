@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import Button from '../Button';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import styles from '../styles/MealActivity.style.js';
+import darkStyles from '../styles/MealActivity.darkStyle.js';
 
 class ViewActivities extends React.Component {
 	//ensure no update state on unmounted components
@@ -23,6 +25,7 @@ class ViewActivities extends React.Component {
 		this.token = this.props.navigation.state.params.token;
 		this.typeUpdate = this.props.navigation.state.params.typeUpdate;
 		this.date = this.props.navigation.state.params.date;
+		this.visible = this.props.navigation.state.params.visible;
 	}
 	
 	//call getActivities to render components
@@ -61,7 +64,7 @@ class ViewActivities extends React.Component {
 	}
 	
 	//returns all created activity as clickable buttons
-	outputActivities() {
+	outputActivities(activityBtn, innerBtnText, textDesc) {
 		if(this._isMounted) {
 			this.getActivities();
 			let activityOutput = [];
@@ -98,8 +101,8 @@ class ViewActivities extends React.Component {
 						activityOutput.push(
 							<React.Fragment key={dataId[0]}>
 								<Button
-									buttonStyle={styles.activityButton}
-									textStyle={styles.buttonText}
+									buttonStyle={activityBtn}
+									textStyle={innerBtnText}
 									text={name + "\n" + date + " (" + hour + ":" + min + ")\n" + duration + " minutes\n" + calories + " calories"}
 									onPress={() => this.props.navigation.navigate("Activities", {
 										token: this.token,
@@ -108,7 +111,8 @@ class ViewActivities extends React.Component {
 										currDuration: duration,
 										currCals: calories,
 										date: String(year) + "-" + String(month) + "-" + String(day) + " " + String(hour) + ":" + String(min),
-										typeUpdate: true
+										typeUpdate: true,
+										visible: this.visible
 									})}
 								/>
 							</React.Fragment>
@@ -118,7 +122,7 @@ class ViewActivities extends React.Component {
 			}
 			//indicate to the user that no activities exist yet
 			if(activityOutput.length === 0) {
-				return (<Text style={styles.textDesc}>No activities found!</Text>);
+				return (<Text style={textDesc}>No activities found!</Text>);
 			}
 			return activityOutput;
 		}
@@ -135,138 +139,118 @@ class ViewActivities extends React.Component {
 		return (currYear + "-" + currMonth + "-" + currDay + " " + currHour + ":" + currMin);
 	}
 	
-	render() {
-		if(this._isMounted) {
+	//if accessibility is enabled, rearrange navigation controls into a row at the top of the screen
+	navControls(backBtnContainer, backBtn, btnSize, btnColor, setContainer, setBtn) {
+		if(this.visible) {
 			return (
-				<View style={styles.container}>
-					{/*Navigation controls*/}
-					<View style={styles.backButtonContainer}>
+				<React.Fragment>
+					<View style={darkStyles.row}>
+						{/*Go back*/}
 						<TouchableOpacity
 							onPress={() => this.props.navigation.goBack()}
-							style={styles.backButton}
+							style={backBtn}
 						>
-							<Ionicons name="md-arrow-back" size={40} color={'#27ADA0'} />
+							<Ionicons name="md-arrow-back" size={btnSize} color={btnColor} />
 						</TouchableOpacity>
-					</View>
-					<View style={styles.settingsContainer}>
+						{/*Settings*/}
 						<TouchableOpacity
 							onPress={() => this.props.navigation.navigate("Settings", {
 								username: this.username,
-								token: this.token
+								token: this.token,
+								visible: this.visible
 						})}
-							style={styles.settingButton}
+							style={setBtn}
 						>
-							<Ionicons name="md-settings" size={40} color={'#27ADA0'} />
+							<Ionicons name="md-settings" size={btnSize} color={btnColor} />
 						</TouchableOpacity>
 					</View>
-					
-					{/*Title texts*/}
-					<View style={styles.row}>
-						<Text style={styles.textTitle}>
-							{this.date.toDateString()}
-						</Text>
-						<Text style={styles.textStyle}>
-							Activities
-						</Text>
-					</View>
-					
-					{/*List of interactible activities*/}
-					<ScrollView style={styles.scrollView} contentContainerStyle={{ alignItems: 'center' }}>
-						{this.outputActivities()}
-					</ScrollView>
-					<Button
-						buttonStyle={styles.button}
-						textStyle={styles.buttonText}
-						text={'Add new activity'}
-						onPress={() => this.props.navigation.navigate("Activities", {
-							token: this.token,
-							currId: "",
-							currName: "",
-							currDuration: "",
-							currCals: "",
-							date: this.getDate(),
-							typeUpdate: false
-						})}
-					/>
-				</View>
+				</React.Fragment>
 			);
+		} else {
+			return (
+				<React.Fragment>
+					{/*Navigation controls*/}
+					<View style={backBtnContainer}>
+						<TouchableOpacity
+							onPress={() => this.props.navigation.goBack()}
+							style={backBtn}
+						>
+							<Ionicons name="md-arrow-back" size={btnSize} color={btnColor} />
+						</TouchableOpacity>
+					</View>
+					<View style={setContainer}>
+						<TouchableOpacity
+							onPress={() => this.props.navigation.navigate("Settings", {
+								username: this.username,
+								token: this.token,
+								visible: this.visible
+						})}
+							style={setBtn}
+						>
+							<Ionicons name="md-settings" size={btnSize} color={btnColor} />
+						</TouchableOpacity>
+					</View>
+				</React.Fragment>
+			);
+		}
+	}
+	
+	//render() function, dependent on styles or darkStyles, changes when accessibility is toggled
+	returnRender(backBtnContainer, backBtn, btnSize, btnColor, setContainer, setBtn, txtTitle, txtStyle, btn, btnText, activityBtn, innerBtnText, textDesc) {
+		return (
+			<View style={styles.container}>				
+				{/*Title texts*/}
+				<View style={styles.row}>
+					<Text style={txtTitle}>
+						{this.date.toDateString()}
+					</Text>
+					<Text style={txtStyle}>
+						Activities
+					</Text>
+				</View>
+				
+				{this.navControls(backBtnContainer, backBtn, btnSize, btnColor, setContainer, setBtn)}
+				
+				{/*List of interactible activities*/}
+				<ScrollView style={styles.scrollView} contentContainerStyle={{ alignItems: 'center' }}>
+					{this.outputActivities(activityBtn, innerBtnText, textDesc)}
+				</ScrollView>
+				<Button
+					buttonStyle={btn}
+					textStyle={btnText}
+					text={'Add new activity'}
+					onPress={() => this.props.navigation.navigate("Activities", {
+						token: this.token,
+						currId: "",
+						currName: "",
+						currDuration: "",
+						currCals: "",
+						date: this.getDate(),
+						typeUpdate: false,
+						visible: this.visible
+					})}
+				/>
+			</View>
+		);
+	}
+	
+	render() {
+		if(this._isMounted) {
+			if(this.visible) {
+				return (
+					this.returnRender(darkStyles.backButtonContainer, darkStyles.backButton, 100, '#1a1a1a', darkStyles.settingsContainer, darkStyles.settingButton,
+						darkStyles.textTitle, darkStyles.textStyle, darkStyles.button, darkStyles.buttonText, darkStyles.activityButton, darkStyles.innerButtonText, darkStyles.textDesc)
+				);
+			} else {
+				return (
+					this.returnRender(styles.backButtonContainer, styles.backButton, 40, '#27ADA0', styles.settingsContainer, styles.settingButton,
+						styles.textTitle, styles.textStyle, styles.button, styles.buttonText, styles.activityButton, styles.buttonText, styles.textDesc)
+				);
+			}
 		} else {
 			return (<View></View>);
 		}
 	}
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center'
-	}, 
-	backButtonContainer: {
-		position: 'absolute',
-		top: 70,
-		left: 10
-	},
-	backButton: {
-		alignItems: 'center',
-		width: 50,
-		height: 50
-	},
-	settingsContainer: {
-		position: 'absolute',
-		top: 70,
-		right: 10
-	},
-	settingButton: {
-		alignItems: 'center',
-		width: 50,
-		height: 50
-	},
-	button: {
-		width: 200,
-		height: 50,
-		margin: 10,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 5,
-		backgroundColor: '#27ADA0'
-	}, 
-	activityButton: {
-		width: Dimensions.get('window').width * 0.7,
-		height: 100,
-		margin: 10,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 5,
-		backgroundColor: '#6327AD',
-	},
-	buttonText: {
-		fontSize: 18,
-		fontWeight: '300',
-		color: 'white',
-		textAlign: 'center'
-	},
-	textStyle: {
-		fontSize: 25,
-		color: '#27ADA0',
-		textAlign: 'center',
-		padding: 5
-	},
-	textTitle: {
-		fontSize: 30,
-		color: '#27ADA0',
-		padding: 20,
-		fontWeight: 'bold',
-		textDecorationLine: 'underline'
-	},
-	textDesc: {
-		fontSize: 18,
-		color: '#6327AD'
-	},
-	scrollView: {
-		flex: 1,
-		width: Dimensions.get('window').width * 0.8
-	}
-})
 
 export default ViewActivities;

@@ -12,6 +12,8 @@ import { View,
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Button from '../Button';
 import base64 from 'base-64';
+import styles from '../styles/SignLogin.style.js';
+import darkStyles from '../styles/SignLogin.darkStyle.js';
 
 class Login extends React.Component {
 	constructor(props) {
@@ -69,37 +71,34 @@ class Login extends React.Component {
 		if(this.state.token.token !== undefined) {
 			navigate('MainProg', {
 				username: this.state.username,
-				token: this.state.token.token
+				token: this.state.token.token,
+				visible: this.props.navigation.state.params.visible
 			});
 		} else if(this.state.token.message !== undefined) {
 			Alert.alert(
 				'Invalid input', 'Invalid username or password',
 				[ {text: 'OK'} ]
 			);
-		} else {
-			Alert.alert(
-				'Network error', 'No message received from network',
-				[ {text: 'OK'} ]
-			);
 		}
 	}
 	
-	render() {
+	returnRender(container, backContainer, backBtn, btnSize, btnColor, txtInput, plhdrColor, btn, btnText) {
 		return (
-			<View style={styles.container}>
-				<View style={styles.backButtonContainer}>
+			<View style={container}>
+				<View style={backContainer}>
 					<TouchableOpacity
 						onPress={() => this.props.navigation.navigate("Home")}
-						style={styles.backButton}
+						style={backBtn}
 					>
-						<Ionicons name="md-arrow-back" size={40} color={'#27ADA0'} />
+						<Ionicons name="md-arrow-back" size={btnSize} color={btnColor} />
 					</TouchableOpacity>
 				</View>
 				<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-					<KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
+					<KeyboardAvoidingView style={container} behavior="padding" enabled>
 						<TextInput
-							style={styles.textInput}
+							style={txtInput}
 							placeholder="Username"
+							placeholderTextColor={plhdrColor}
 							autoCapitalize="none"
 							autoCorrect={false}
 							returnKeyType="next"
@@ -109,8 +108,9 @@ class Login extends React.Component {
 							value={this.state.username}
 						/>
 						<TextInput
-							style={styles.textInput}
+							style={txtInput}
 							placeholder="Password"
+							placeholderTextColor={plhdrColor}
 							autoCapitalize="none"
 							autoCorrect={false}
 							secureTextEntry={true}
@@ -123,55 +123,26 @@ class Login extends React.Component {
 					</KeyboardAvoidingView>
 				</TouchableWithoutFeedback>
 				<Button
-					buttonStyle={styles.button}
-					textStyle={styles.buttonText}
+					buttonStyle={btn}
+					textStyle={btnText}
 					text={'Log in'}
 					onPress={() => this.login()}
 				/>
 			</View>
 		);
 	}
-}
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center'
-	}, 
-	backButtonContainer: {
-		position: 'absolute',
-		top: 70,
-		left: 10
-	},
-	backButton: {
-		alignItems: 'center',
-		width: 50,
-		height: 50
-	},
-	button: {
-		width: 200,
-		height: 50,
-		margin: 10,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 5,
-		backgroundColor: '#27ADA0'
-	}, 
-	buttonText: {
-		fontSize: 18,
-		fontWeight: '300',
-		color: 'white'
-	},
-	textInput: {
-		borderBottomColor: '#27ADA0',
-		borderBottomWidth: 1,
-		width: 200,
-		textAlign: 'center',
-		margin: 10,
-		padding: 5,
-		color: '#27ADA0'
+	
+	render() {
+		if(this.props.navigation.state.params.visible) {
+			return (
+				this.returnRender(darkStyles.container, darkStyles.backButtonContainer, darkStyles.backButton, 100, '#1a1a1a', darkStyles.textInput, '#1a1a1a', darkStyles.button, darkStyles.buttonText)
+			);
+		} else {
+			return (
+				this.returnRender(styles.container, styles.backButtonContainer, styles.backButton, 40, '#27ADA0', styles.textInput, '#c4c4c4', styles.button, styles.buttonText)
+			);
+		}
 	}
-})
+}
 
 export default Login;

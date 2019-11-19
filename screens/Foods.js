@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import Button from '../Button';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import styles from '../styles/MealActivityEdit.style.js';
+import darkStyles from '../styles/MealActivityEdit.darkStyle.js';
 
 class Foods extends React.Component {
 	//ensure no update state on unmounted components
@@ -35,6 +37,7 @@ class Foods extends React.Component {
 		this.token = this.props.navigation.state.params.token;
 		this.mealId = this.props.navigation.state.params.mealId;
 		this.typeUpdate = this.props.navigation.state.params.typeUpdate;
+		this.visible = this.props.navigation.state.params.visible;
 	}
 	
 	//call getFoods to render components
@@ -233,15 +236,15 @@ class Foods extends React.Component {
 	}
 	
 	//All input fields for non-date data
-	getInput(placeholder, keyboard, capitalize, state, value, defaultVal) {
+	getInput(placeholder, keyboard, capitalize, state, value, defaultVal, txtInputContainer, inputTitleStyle, txtInput) {
 		if(this._isMounted) {
 			return (
-				<View style={styles.textInputContainer}>
-					<Text style={styles.inputTitleStyle}>
+				<View style={txtInputContainer}>
+					<Text style={inputTitleStyle}>
 					{placeholder}:
 					</Text>
 					<TextInput
-						style={styles.textInput}
+						style={txtInput}
 						placeholder={placeholder}
 						defaultValue={defaultVal}
 						keyboardType={keyboard}
@@ -254,31 +257,31 @@ class Foods extends React.Component {
 		}
 	}
 	
-	getButtons() {
+	getButtons(addBtn, updateBtn, btnDanger, btnText) {
 		//if editing an existing food, buttons should be for updating or deleting
 		if(this.typeUpdate) {
 			return (
-				<React.Fragment>
+				<View style={darkStyles.row}>
 					<Button
-						buttonStyle={styles.button}
-						textStyle={styles.buttonText}
+						buttonStyle={updateBtn}
+						textStyle={btnText}
 						text={'Update food'}
 						onPress={() => this.updateFood()}
 					/>
 					<Button
-						buttonStyle={styles.buttonDanger}
-						textStyle={styles.buttonText}
+						buttonStyle={btnDanger}
+						textStyle={btnText}
 						text={'Delete food'}
 						onPress={() => this.confirmDelete()}
 					/>
-				</React.Fragment>
+				</View>
 			);
 		//if creating a new food, button should only be for adding
 		} else {
 			return (
 				<Button
-					buttonStyle={styles.button}
-					textStyle={styles.buttonText}
+					buttonStyle={addBtn}
+					textStyle={btnText}
 					text={'Add food'}
 					onPress={() => this.addToServer()}
 				/>
@@ -286,118 +289,78 @@ class Foods extends React.Component {
 		}
 	}
 	
-	render() {
-		if(this._isMounted) {
+	//if accessibility is enabled, place backwards button directly underneath title for consistency
+	navControls(backBtnContainer, backBtn, btnSize, btnColor) {
+		if(this.visible) {
 			return (
-				<View style={styles.container}>
-					<View style={styles.backButtonContainer}>
-						<TouchableOpacity
-							onPress={() => this.props.navigation.goBack()}
-							style={styles.backButton}
-						>
-							<Ionicons name="md-arrow-back" size={40} color={'#27ADA0'} />
-						</TouchableOpacity>
-					</View>
-					{/*Keep all text input fields in one center-aligned container*/}
-					<View style={styles.innerContainer}>
-						<Text style={styles.textStyle}>
-							Food Editor
-						</Text>
-						<View style={styles.container}>
-							<ScrollView style={styles.scrollView} contentContainerStyle={{ alignItems: 'center' }}>
-								<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-									<KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
-										{this.getInput("Food Name", "default", "words", "foodName", this.state.foodName, this.state.foodName)}
-										{this.getInput("Calories", "numeric", "none", "calories", String(this.state.calories), String(this.state.calories))}
-										{this.getInput("Carbohydrates", "numeric", "none", "carbs", String(this.state.carbs), String(this.state.carbs))}
-										{this.getInput("Protein", "numeric", "none", "protein", String(this.state.protein), String(this.state.protein))}
-										{this.getInput("Fat", "numeric", "none", "fat", String(this.state.fat), String(this.state.fat))}
-									</KeyboardAvoidingView>
-								</TouchableWithoutFeedback>
-							</ScrollView>
-							{this.getButtons()}
-						</View>
-					</View>
+				<TouchableOpacity
+					onPress={() => this.props.navigation.goBack()}
+					style={backBtn}
+				>
+					<Ionicons name="md-arrow-back" size={btnSize} color={btnColor} />
+				</TouchableOpacity>
+			);
+		} else {
+			return (
+				<View style={backBtnContainer}>
+					<TouchableOpacity
+						onPress={() => this.props.navigation.goBack()}
+						style={backBtn}
+					>
+						<Ionicons name="md-arrow-back" size={btnSize} color={btnColor} />
+					</TouchableOpacity>
 				</View>
 			);
+		}
+	}
+	
+	//render() method, dependent on whether accessibility is enabled.
+	returnRender(backBtnContainer, backBtn, btnSize, btnColor, txtStyle, txtInput, txtInputContainer, inputTitleStyle, 
+		btnText, addBtn, updateBtn, btnDanger, scrollView) {
+		return (
+			<View style={styles.container}>
+				<Text style={txtStyle}>
+					Food Editor
+				</Text>
+				
+				{this.navControls(backBtnContainer, backBtn, btnSize, btnColor)}
+				
+				<View style={styles.container}>
+					<ScrollView style={scrollView} contentContainerStyle={{ alignItems: 'center' }}>
+						<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+							<KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
+								{this.getInput("Food Name", "default", "words", "foodName", this.state.foodName, this.state.foodName, txtInputContainer, inputTitleStyle, txtInput)}
+								{this.getInput("Calories", "numeric", "none", "calories", String(this.state.calories), String(this.state.calories), txtInputContainer, inputTitleStyle, txtInput)}
+								{this.getInput("Carbohydrates", "numeric", "none", "carbs", String(this.state.carbs), String(this.state.carbs), txtInputContainer, inputTitleStyle, txtInput)}
+								{this.getInput("Protein", "numeric", "none", "protein", String(this.state.protein), String(this.state.protein), txtInputContainer, inputTitleStyle, txtInput)}
+								{this.getInput("Fat", "numeric", "none", "fat", String(this.state.fat), String(this.state.fat), txtInputContainer, inputTitleStyle, txtInput)}
+							</KeyboardAvoidingView>
+						</TouchableWithoutFeedback>
+					</ScrollView>
+					{this.getButtons(addBtn, updateBtn, btnDanger, btnText)}
+				</View>
+			</View>
+		);
+	}
+	
+	render() {
+		if(this._isMounted) {
+			if(this.visible) {
+				return (
+					this.returnRender(darkStyles.backButtonContainer, darkStyles.backButton, 100, '#1a1a1a', darkStyles.textStyle, darkStyles.textInput, 
+						darkStyles.textInputContainer, darkStyles.inputTitleStyle, darkStyles.buttonText, darkStyles.addButton, 
+						darkStyles.updateButton, darkStyles.buttonDanger, darkStyles.scrollView)
+				);
+			} else {
+				return (
+					this.returnRender(styles.backButtonContainer, styles.backButton, 40, '#27ADA0', styles.textStyle, styles.textInput, 
+						styles.textInputContainer, styles.inputTitleStyle, styles.buttonText, styles.button, styles.button, styles.buttonDanger, styles.scrollView)
+				);
+			}
 		} else {
 			return (<View></View>);
 		}
 	}
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center'
-	}, 
-	innerContainer: {
-		width: Dimensions.get('window').width * 0.8,
-		height: Dimensions.get('window').height * 0.8
-	},
-	backButtonContainer: {
-		position: 'absolute',
-		top: 70,
-		left: 10
-	},
-	backButton: {
-		alignItems: 'center',
-		width: 50,
-		height: 50
-	},
-	button: {
-		width: 200,
-		height: 50,
-		margin: 10,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 5,
-		backgroundColor: '#27ADA0'
-	}, 
-	buttonDanger: {
-		width: 200,
-		height: 50,
-		margin: 10,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 5,
-		backgroundColor: '#AD272D'
-	},
-	buttonText: {
-		fontSize: 18,
-		fontWeight: '300',
-		color: 'white',
-		textAlign: 'center'
-	},
-	textStyle: {
-		fontSize: 25,
-		color: '#27ADA0',
-		textAlign: 'center'
-	},
-	inputTitleStyle: {
-		fontSize: 18,
-		color: '#27ADA0',
-		padding: 10
-	},
-	textInput: {
-		borderBottomColor: '#27ADA0',
-		borderBottomWidth: 1,
-		width: 200,
-		textAlign: 'center',
-		margin: 1,
-		padding: 3,
-		color: '#27ADA0',
-	},
-	textInputContainer: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		padding: 10,
-	},
-	scrollView: {
-		flex: 1,
-		width: Dimensions.get('window').width * 0.9
-	}
-})
 
 export default Foods;

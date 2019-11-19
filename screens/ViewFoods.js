@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import Button from '../Button';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import styles from '../styles/MealActivity.style.js';
+import darkStyles from '../styles/MealActivity.darkStyle.js';
 
 class ViewFoods extends React.Component {
 	//ensure no update state on unmounted components
@@ -29,6 +31,7 @@ class ViewFoods extends React.Component {
 		this.id = this.props.navigation.state.params.currId;
 		this.typeUpdate = this.props.navigation.state.params.typeUpdate;
 		this.date = this.props.navigation.state.params.date;
+		this.visible = this.props.navigation.state.params.visible;
 	}
 	
 	//call getFoods to render components
@@ -72,7 +75,7 @@ class ViewFoods extends React.Component {
 	}
 	
 	//returns all created foods as clickable buttons
-	outputFoods(onMount) {
+	outputFoods(onMount, foodBtn, innerBtnText, textDesc) {
 		if(this._isMounted) {
 			this.getFoods();
 			let foodOutput = [];
@@ -110,8 +113,8 @@ class ViewFoods extends React.Component {
 						foodOutput.push(
 							<React.Fragment key={dataId[0]}>
 								<Button
-									buttonStyle={styles.foodButton}
-									textStyle={styles.buttonText}
+									buttonStyle={foodBtn}
+									textStyle={innerBtnText}
 									text={name + "\n" + calories + " cals\n" + carbs + " carbs\n" + protein + " protein\n" + fat + " fat"}
 									onPress={() => this.props.navigation.navigate("Foods", {
 										token: this.token,
@@ -122,7 +125,8 @@ class ViewFoods extends React.Component {
 										currProtein: protein,
 										currFat: fat,
 										typeUpdate: true,
-										mealId: this.id
+										mealId: this.id,
+										visible: this.visible
 									})}
 								/>
 							</React.Fragment>
@@ -140,19 +144,20 @@ class ViewFoods extends React.Component {
 				});
 			//indicate to the user that no foods exist yet
 			} else if(foodOutput.length === 0) {
-				return (<Text style={styles.textDesc}>No foods found!</Text>);
+				return (<Text style={textDesc}>No foods found!</Text>);
 			} else {
 				return foodOutput;
 			}
 		}
 	}
 	
-	render() {
-		if(this._isMounted) {
+	//if accessibility is enabled, rearrange navigation controls into a row at the top of the screen
+	navControls(backBtnContainer, backBtn, btnSize, btnColor, setContainer, setBtn) {
+		if(this.visible) {
 			return (
-				<View style={styles.container}>
-					{/*Navigation controls*/}
-					<View style={styles.backButtonContainer}>
+				<React.Fragment>
+					<View style={darkStyles.row}>
+						{/*Go back*/}
 						<TouchableOpacity
 							onPress={() => this.props.navigation.navigate("ViewMeals", {
 								fromHome: false,
@@ -162,42 +167,84 @@ class ViewFoods extends React.Component {
 								sumFat: this.state.sumFat,
 								sumProtein: this.state.sumProtein
 							})}
-							style={styles.backButton}
+							style={backBtn}
 						>
-							<Ionicons name="md-arrow-back" size={40} color={'#27ADA0'} />
+							<Ionicons name="md-arrow-back" size={btnSize} color={btnColor} />
 						</TouchableOpacity>
-					</View>
-					<View style={styles.settingsContainer}>
+						{/*Settings*/}
 						<TouchableOpacity
 							onPress={() => this.props.navigation.navigate("Settings", {
 								username: this.username,
-								token: this.token
+								token: this.token,
+								visible: this.visible
 						})}
-							style={styles.settingButton}
+							style={setBtn}
 						>
-							<Ionicons name="md-settings" size={40} color={'#27ADA0'} />
+							<Ionicons name="md-settings" size={btnSize} color={btnColor} />
 						</TouchableOpacity>
 					</View>
-					
-					{/*Title texts*/}
-					<View style={styles.row}>
-						<Text style={styles.textTitle}>
-							{this.date.toDateString()}
-						</Text>
-						<Text style={styles.textStyle}>
-							Foods for {this.mealName}
-						</Text>
+				</React.Fragment>
+			);
+		} else {
+			return (
+				<React.Fragment>
+					{/*Navigation controls*/}
+					<View style={backBtnContainer}>
+						<TouchableOpacity
+							onPress={() => this.props.navigation.navigate("ViewMeals", {
+								fromHome: false,
+								updateId: this.id,
+								sumCal: this.state.sumCal,
+								sumCarbs: this.state.sumCarbs,
+								sumFat: this.state.sumFat,
+								sumProtein: this.state.sumProtein
+							})}
+							style={backBtn}
+						>
+							<Ionicons name="md-arrow-back" size={btnSize} color={btnColor} />
+						</TouchableOpacity>
 					</View>
-					
-					{/*List of interactible foods*/}
-					<ScrollView style={styles.scrollView} contentContainerStyle={{ alignItems: 'center' }}>
-						{this.outputFoods(false)}
-					</ScrollView>
-					
-					{/*Food navigation Buttons*/}
+					<View style={setContainer}>
+						<TouchableOpacity
+							onPress={() => this.props.navigation.navigate("Settings", {
+								username: this.username,
+								token: this.token,
+								visible: this.visible
+						})}
+							style={setBtn}
+						>
+							<Ionicons name="md-settings" size={btnSize} color={btnColor} />
+						</TouchableOpacity>
+					</View>
+				</React.Fragment>
+			);
+		}
+	}
+	
+	//render() function, dependent on styles or darkStyles, changes when accessibility is toggled
+	returnRender(backBtnContainer, backBtn, btnSize, btnColor, setContainer, setBtn, txtTitle, txtStyle, btn, btnText, foodBtn, innerBtnText, textDesc) {
+		return (
+			<View style={styles.container}>
+				{/*Title texts*/}
+				<Text style={txtTitle}>
+					{this.date.toDateString()}
+				</Text>
+				<Text style={txtStyle}>
+					Foods for {this.mealName}
+				</Text>
+				
+				{this.navControls(backBtnContainer, backBtn, btnSize, btnColor, setContainer, setBtn)}
+				
+				{/*List of interactible foods*/}
+				<ScrollView style={styles.scrollView} contentContainerStyle={{ alignItems: 'center' }}>
+					{this.outputFoods(false, foodBtn, innerBtnText, textDesc)}
+				</ScrollView>
+				
+				{/*Food navigation Buttons*/}
+				<View style={darkStyles.row}>
 					<Button
-						buttonStyle={styles.button}
-						textStyle={styles.buttonText}
+						buttonStyle={btn}
+						textStyle={btnText}
 						text={'Add new food'}
 						onPress={() => this.props.navigation.navigate("Foods", {
 							token: this.token,
@@ -208,100 +255,46 @@ class ViewFoods extends React.Component {
 							currCarbs: "",
 							currFat: "",
 							typeUpdate: false,
-							mealId: this.id
+							mealId: this.id,
+							visible: this.visible
 						})}
 					/>
 					<Button
-						buttonStyle={styles.button}
-						textStyle={styles.buttonText}
+						buttonStyle={btn}
+						textStyle={btnText}
 						text={'Edit meal'}
 						onPress={() => this.props.navigation.navigate("Meals", {
 							token: this.token,
 							currId: this.id,
 							currName: this.mealName,
 							date: this.props.navigation.state.params.stringDate,
-							typeUpdate: true
+							typeUpdate: true,
+							visible: this.visible
 						})}
 					/>
 				</View>
-			);
+			</View>
+		);
+	}
+	
+	render() {
+		if(this._isMounted) {
+			//if accessibility is enabled:
+			if(this.visible) {
+				return (
+					this.returnRender(darkStyles.backButtonContainer, darkStyles.backButton, 100, '#1a1a1a', darkStyles.settingsContainer, darkStyles.settingButton,
+						darkStyles.textTitle, darkStyles.textStyle, darkStyles.foodNavButton, darkStyles.buttonText, darkStyles.foodButton, darkStyles.innerButtonText, darkStyles.textDesc)
+				);
+			} else {
+				return (
+					this.returnRender(styles.backButtonContainer, styles.backButton, 40, '#27ADA0', styles.settingsContainer, styles.settingButton,
+						styles.textTitle, styles.textStyle, styles.button, styles.buttonText, styles.foodButton, styles.buttonText, styles.textDesc)
+				);
+			}
 		} else {
 			return (<View></View>);
 		}
 	}
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center'
-	}, 
-	backButtonContainer: {
-		position: 'absolute',
-		top: 70,
-		left: 10
-	},
-	backButton: {
-		alignItems: 'center',
-		width: 50,
-		height: 50
-	},
-	settingsContainer: {
-		position: 'absolute',
-		top: 70,
-		right: 10
-	},
-	settingButton: {
-		alignItems: 'center',
-		width: 50,
-		height: 50
-	},
-	button: {
-		width: 200,
-		height: 50,
-		margin: 10,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 5,
-		backgroundColor: '#27ADA0'
-	}, 
-	foodButton: {
-		width: Dimensions.get('window').width * 0.7,
-		height: 130,
-		margin: 10,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 5,
-		backgroundColor: '#6327AD',
-	},
-	buttonText: {
-		fontSize: 18,
-		fontWeight: '300',
-		color: 'white',
-		textAlign: 'center'
-	},
-	textStyle: {
-		fontSize: 25,
-		color: '#27ADA0',
-		textAlign: 'center',
-		padding: 5
-	},
-	textTitle: {
-		fontSize: 30,
-		color: '#27ADA0',
-		padding: 20,
-		fontWeight: 'bold',
-		textDecorationLine: 'underline'
-	},
-	textDesc: {
-		fontSize: 18,
-		color: '#6327AD'
-	},
-	scrollView: {
-		flex: 1,
-		width: Dimensions.get('window').width * 0.8
-	}
-})
 
 export default ViewFoods;

@@ -11,10 +11,12 @@ import {
   TextInput,
   Keyboard,
   SectionList,
-  AsyncStorage
+  ScrollView
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Button from '../Button';
+import styles from '../styles/Profile.style.js';
+import darkStyles from '../styles/Profile.darkStyle.js';
 
 class Profile extends React.Component {
 	constructor(props) {
@@ -32,6 +34,7 @@ class Profile extends React.Component {
 	};
 	this.username = this.props.navigation.state.params.username;
 	this.token = this.props.navigation.state.params.token;
+	this.visible = this.props.navigation.state.params.visible;
 	}
 
 	//update all states with data stored in site
@@ -110,10 +113,10 @@ class Profile extends React.Component {
 	}
 
 	//base structure for all input fields in the "edit profile" modal
-	getInput(placeholder, keyboard, capitalize, state, value, defaultVal) {
+	getInput(placeholder, keyboard, capitalize, state, defaultVal, textInput) {
 		return (
 			<TextInput
-				style={styles.textInput}
+				style={textInput}
 				placeholder={placeholder}
 				defaultValue={defaultVal}
 				keyboardType={keyboard}
@@ -125,23 +128,25 @@ class Profile extends React.Component {
 	}
 
 	//All interactible elements that appear in the "edit profile" modal
-	editProfile() {
+	editProfile(btn, btnText, textInput) {
 		return (
 		<View style={styles.container}>
-			<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-				<KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
-					{this.getInput("First name", "default", "words", "firstName", this.state.firstName, this.state.firstName)}
-					{this.getInput("Last name", "default", "words", "lastName", this.state.lastName, this.state.lastName)}
-					{this.getInput("Daily activity", "numeric", "none", "dailyActivity", String(this.state.dailyActivity), "")}
-					{this.getInput("Daily calories", "numeric", "none", "dailyCalories", String(this.state.dailyCalories), "")}
-					{this.getInput("Daily carbohydrates", "numeric", "none", "dailyCarbs", String(this.state.dailyCarbs), "")}
-					{this.getInput("Daily fat", "numeric", "none", "dailyFat", String(this.state.dailyFat), "")}
-					{this.getInput("Daily protein", "numeric", "none", "dailyProtein", String(this.state.dailyProtein), "")}
-				</KeyboardAvoidingView>
-			</TouchableWithoutFeedback>
+			<ScrollView style={darkStyles.scrollView} contentContainerStyle={{ alignItems: 'center' }}>
+				<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+					<KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
+						{this.getInput("First name", "default", "words", "firstName", this.state.firstName, textInput)}
+						{this.getInput("Last name", "default", "words", "lastName", this.state.lastName, textInput)}
+						{this.getInput("Daily activity", "numeric", "none", "dailyActivity", "", textInput)}
+						{this.getInput("Daily calories", "numeric", "none", "dailyCalories", "", textInput)}
+						{this.getInput("Daily carbohydrates", "numeric", "none", "dailyCarbs", "", textInput)}
+						{this.getInput("Daily fat", "numeric", "none", "dailyFat", "", textInput)}
+						{this.getInput("Daily protein", "numeric", "none", "dailyProtein", "", textInput)}
+					</KeyboardAvoidingView>
+				</TouchableWithoutFeedback>
+			</ScrollView>
 			<Button
-				buttonStyle={styles.button}
-				textStyle={styles.buttonText}
+				buttonStyle={btn}
+				textStyle={btnText}
 				text={'Update profile'}
 				onPress={() => this.updateProfile()}
 			/>
@@ -161,18 +166,19 @@ class Profile extends React.Component {
 		return ([firstName + " " + lastName]);
 	}
 
-	render() {
+	//render() method, dependent on whether accessibility is enabled, changes styles accordingly
+	returnRender(backBtnContainer, backBtn, btnSize, btnColor, textStyle, styleItem, sectionHeader, btn, btnText, textInput) {
 		return (
 			<View style={styles.container}>
-				<View style={styles.backButtonContainer}>
+				<View style={backBtnContainer}>
 					<TouchableOpacity
-						onPress={() => this.props.navigation.navigate("Settings")}
-						style={styles.backButton}
+						onPress={() => this.props.navigation.goBack()}
+						style={backBtn}
 					>
-						<Ionicons name="md-arrow-back" size={40} color={'#27ADA0'} />
+						<Ionicons name="md-arrow-back" size={btnSize} color={btnColor} />
 					</TouchableOpacity>
 				</View>
-				<Text style={styles.textStyle}>
+				<Text style={textStyle}>
 					Profile{'\n'}
 				</Text>
 				<SectionList
@@ -187,13 +193,13 @@ class Profile extends React.Component {
 							'Daily protein: ' + this.state.dailyProtein
 						]}
 					]}
-					renderItem={({item}) => <Text style={styles.item}>{item}</Text>}
-					renderSectionHeader={({section}) => <Text style={styles.sectionHeader}>{section.title}</Text>}
+					renderItem={({item}) => <Text style={styleItem}>{item}</Text>}
+					renderSectionHeader={({section}) => <Text style={sectionHeader}>{section.title}</Text>}
 					keyExtractor={(item, index) => index}
 				/>
 				<Button
-					buttonStyle={styles.button}
-					textStyle={styles.buttonText}
+					buttonStyle={btn}
+					textStyle={btnText}
 					text={'Edit profile'}
 					onPress={() => this.profileEdit()}
 				/>
@@ -204,7 +210,7 @@ class Profile extends React.Component {
 					<TouchableWithoutFeedback onPress={() => this.profileEdit()}>
 						<View style={styles.modalBG}>
 							<View style={styles.modalBox}>
-							  {this.editProfile()}
+							  {this.editProfile(btn, btnText, textInput)}
 							</View>
 						</View>
 					</TouchableWithoutFeedback>
@@ -212,81 +218,21 @@ class Profile extends React.Component {
 			</View>
 		);
 	}
-}
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	backButtonContainer: {
-		position: 'absolute',
-		top: 70,
-		left: 10
-	},
-	backButton: {
-		alignItems: 'center',
-		width: 50,
-		height: 50
-	},
-	textStyle: {
-		fontSize: 25,
-		fontWeight: 'bold',
-		color: '#27ADA0',
-		padding: 20
-	},
-	button: {
-		width: 200,
-		height: 50,
-		margin: 5,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 5,
-		backgroundColor: '#27ADA0',
-	},
-	buttonText: {
-		fontSize: 18,
-		fontWeight: '300',
-		color: 'white',
-	},
-	modalBG: {
-		flex: 1,
-		flexDirection: 'column',
-		justifyContent: 'center',
-		alignItems: 'center',
-		backgroundColor: '#00000080',
-	},
-	modalBox: {
-		width: Dimensions.get('window').width * 0.8,
-		height: Dimensions.get('window').height * 0.7,
-		backgroundColor: '#fff',
-		padding: 20,
-	},
-	textInput: {
-		borderBottomColor: '#27ADA0',
-		borderBottomWidth: 1,
-		width: 200,
-		textAlign: 'center',
-		margin: 1,
-		padding: 3,
-		color: '#27ADA0',
-	},
-	item: {
-		padding: 10,
-		fontSize: 18,
-		color: '#27ADA0'
-	},
-	sectionHeader: {
-		paddingTop: 2,
-		paddingLeft: 10,
-		paddingRight: 10,
-		paddingBottom: 2,
-		fontSize: 16,
-		fontWeight: 'bold',
-		backgroundColor: '#27ADA0',
-		color: 'white'
+	
+	render() {
+		//if accessibility is enabled:
+		if(this.visible) {
+			return (
+				this.returnRender(darkStyles.backButtonContainer, darkStyles.backButton, 100, '#1a1a1a', darkStyles.textStyle, darkStyles.item, darkStyles.sectionHeader,
+					darkStyles.button, darkStyles.buttonText, darkStyles.textInput)
+			);
+		} else {
+			return (
+				this.returnRender(styles.backButtonContainer, styles.backButton, 40, '#27ADA0', styles.textStyle, styles.item, styles.sectionHeader,
+					styles.button, styles.buttonText, styles.textInput)
+			);
+		}
 	}
-});
+}
 
 export default Profile;

@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import Button from '../Button';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import styles from '../styles/MealActivity.style.js';
+import darkStyles from '../styles/MealActivity.darkStyle.js';
 
 class ViewMeals extends React.Component {
 	//ensure no update state on unmounted components
@@ -24,6 +26,7 @@ class ViewMeals extends React.Component {
 		this.token = this.props.navigation.state.params.token;
 		this.typeUpdate = this.props.navigation.state.params.typeUpdate;
 		this.date = this.props.navigation.state.params.date;
+		this.visible = this.props.navigation.state.params.visible;
 	}
 	
 	//call getMeals to render components
@@ -62,7 +65,7 @@ class ViewMeals extends React.Component {
 	}
 	
 	//returns all created meals as clickable buttons
-	outputMeals() {
+	outputMeals(mealBtn, innerBtnText, textDesc) {
 		if(this._isMounted) {
 			this.getMeals();
 			let mealOutput = [];
@@ -129,8 +132,8 @@ class ViewMeals extends React.Component {
 						mealOutput.push(
 							<React.Fragment key={dataId[0]}>
 								<Button
-									buttonStyle={styles.mealButton}
-									textStyle={styles.buttonText}
+									buttonStyle={mealBtn}
+									textStyle={innerBtnText}
 									text={name + "\n" + date + " (" + hour + ":" + min + ")\n" + sumCalGain + " cal\n" + sumCarbs + " carbohydrates\n" + sumFat + " fat\n" + sumProtein + " protein"}
 									onPress={() => this.props.navigation.navigate("ViewFoods", {
 										token: this.token,
@@ -138,7 +141,8 @@ class ViewMeals extends React.Component {
 										currName: name,
 										date: this.date,
 										stringDate: String(year) + "-" + String(month) + "-" + String(day) + " " + String(hour) + ":" + String(min),
-										typeUpdate: true
+										typeUpdate: true,
+										visible: this.visible
 									})}
 								/>
 							</React.Fragment>
@@ -148,7 +152,7 @@ class ViewMeals extends React.Component {
 			}
 			//indicate to the user that no meals exist yet
 			if(mealOutput.length === 0) {
-				return (<Text style={styles.textDesc}>No meals found!</Text>);
+				return (<Text style={textDesc}>No meals found!</Text>);
 			}
 			return mealOutput;
 		}
@@ -165,136 +169,116 @@ class ViewMeals extends React.Component {
 		return (currYear + "-" + currMonth + "-" + currDay + " " + currHour + ":" + currMin);
 	}
 	
-	render() {
-		if(this._isMounted) {
+	//if accessibility is enabled, rearrange navigation controls into a row at the top of the screen
+	navControls(backBtnContainer, backBtn, btnSize, btnColor, setContainer, setBtn) {
+		if(this.visible) {
 			return (
-				<View style={styles.container}>
-					{/*Navigation controls*/}
-					<View style={styles.backButtonContainer}>
+				<React.Fragment>
+					<View style={darkStyles.row}>
+						{/*Go back*/}
 						<TouchableOpacity
 							onPress={() => this.props.navigation.goBack()}
-							style={styles.backButton}
+							style={backBtn}
 						>
-							<Ionicons name="md-arrow-back" size={40} color={'#27ADA0'} />
+							<Ionicons name="md-arrow-back" size={btnSize} color={btnColor} />
 						</TouchableOpacity>
-					</View>
-					<View style={styles.settingsContainer}>
+						{/*Settings*/}
 						<TouchableOpacity
 							onPress={() => this.props.navigation.navigate("Settings", {
 								username: this.username,
-								token: this.token
+								token: this.token,
+								visible: this.visible
 						})}
-							style={styles.settingButton}
+							style={setBtn}
 						>
-							<Ionicons name="md-settings" size={40} color={'#27ADA0'} />
+							<Ionicons name="md-settings" size={btnSize} color={btnColor} />
 						</TouchableOpacity>
 					</View>
-					
-					{/*Text titles*/}
-					<View style={styles.row}>
-						<Text style={styles.textTitle}>
-							{this.date.toDateString()}
-						</Text>
-						<Text style={styles.textStyle}>
-							Meals
-						</Text>
-					</View>
-					
-					{/*List of interactible meals*/}
-					<ScrollView style={styles.scrollView} contentContainerStyle={{ alignItems: 'center' }}>
-						{this.outputMeals()}
-					</ScrollView>
-					<Button
-						buttonStyle={styles.button}
-						textStyle={styles.buttonText}
-						text={'Add new meal'}
-						onPress={() => this.props.navigation.navigate("Meals", {
-							token: this.token,
-							currId: "",
-							currName: "",
-							date: this.getDate(),
-							typeUpdate: false
-						})}
-					/>
-				</View>
+				</React.Fragment>
 			);
+		} else {
+			return (
+				<React.Fragment>
+					{/*Navigation controls*/}
+					<View style={backBtnContainer}>
+						<TouchableOpacity
+							onPress={() => this.props.navigation.goBack()}
+							style={backBtn}
+						>
+							<Ionicons name="md-arrow-back" size={btnSize} color={btnColor} />
+						</TouchableOpacity>
+					</View>
+					<View style={setContainer}>
+						<TouchableOpacity
+							onPress={() => this.props.navigation.navigate("Settings", {
+								username: this.username,
+								token: this.token,
+								visible: this.visible
+						})}
+							style={setBtn}
+						>
+							<Ionicons name="md-settings" size={btnSize} color={btnColor} />
+						</TouchableOpacity>
+					</View>
+				</React.Fragment>
+			);
+		}
+	}
+	
+	//render() function, dependent on styles or darkStyles, changes when accessibility is toggled
+	returnRender(backBtnContainer, backBtn, btnSize, btnColor, setContainer, setBtn, txtTitle, txtStyle, btn, btnText, mealBtn, innerBtnText, textDesc) {
+		return (
+			<View style={styles.container}>
+				{/*Text titles*/}
+				<View style={styles.row}>
+					<Text style={txtTitle}>
+						{this.date.toDateString()}
+					</Text>
+					<Text style={txtStyle}>
+						Meals
+					</Text>
+				</View>
+				
+				{this.navControls(backBtnContainer, backBtn, btnSize, btnColor, setContainer, setBtn)}
+				
+				{/*List of interactible meals*/}
+				<ScrollView style={styles.scrollView} contentContainerStyle={{ alignItems: 'center' }}>
+					{this.outputMeals(mealBtn, innerBtnText, textDesc)}
+				</ScrollView>
+				<Button
+					buttonStyle={btn}
+					textStyle={btnText}
+					text={'Add new meal'}
+					onPress={() => this.props.navigation.navigate("Meals", {
+						token: this.token,
+						currId: "",
+						currName: "",
+						date: this.getDate(),
+						typeUpdate: false,
+						visible: this.visible
+					})}
+				/>
+			</View>
+		);
+	}
+	
+	render() {
+		if(this._isMounted) {
+			if(this.visible) {
+				return (
+					this.returnRender(darkStyles.backButtonContainer, darkStyles.backButton, 100, '#1a1a1a', darkStyles.settingsContainer, darkStyles.settingButton,
+						darkStyles.textTitle, darkStyles.textStyle, darkStyles.button, darkStyles.buttonText, darkStyles.mealButton, darkStyles.innerButtonText, darkStyles.textDesc)
+				);
+			} else {
+				return (
+					this.returnRender(styles.backButtonContainer, styles.backButton, 40, '#27ADA0', styles.settingsContainer, styles.settingButton,
+						styles.textTitle, styles.textStyle, styles.button, styles.buttonText, styles.mealButton, styles.buttonText, styles.textDesc)
+				);
+			}
 		} else {
 			return (<View></View>);
 		}
 	}
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center'
-	}, 
-	backButtonContainer: {
-		position: 'absolute',
-		top: 70,
-		left: 10
-	},
-	backButton: {
-		alignItems: 'center',
-		width: 50,
-		height: 50
-	},
-	settingsContainer: {
-		position: 'absolute',
-		top: 70,
-		right: 10
-	},
-	settingButton: {
-		alignItems: 'center',
-		width: 50,
-		height: 50
-	},
-	button: {
-		width: 200,
-		height: 50,
-		margin: 10,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 5,
-		backgroundColor: '#27ADA0'
-	}, 
-	mealButton: {
-		width: Dimensions.get('window').width * 0.7,
-		height: 150,
-		margin: 10,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 5,
-		backgroundColor: '#6327AD',
-	},
-	buttonText: {
-		fontSize: 18,
-		fontWeight: '300',
-		color: 'white',
-		textAlign: 'center'
-	},
-	textStyle: {
-		fontSize: 25,
-		color: '#27ADA0',
-		textAlign: 'center',
-		padding: 5
-	},
-	textTitle: {
-		fontSize: 30,
-		color: '#27ADA0',
-		padding: 20,
-		fontWeight: 'bold',
-		textDecorationLine: 'underline'
-	},
-	textDesc: {
-		fontSize: 18,
-		color: '#6327AD'
-	},
-	scrollView: {
-		flex: 1,
-		width: Dimensions.get('window').width * 0.8
-	}
-})
 
 export default ViewMeals;

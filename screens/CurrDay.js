@@ -4,6 +4,8 @@ import Button from '../Button';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ProgressCircle } from 'react-native-svg-charts';
 import pluralize from 'pluralize';
+import styles from '../styles/CurrDay.style.js';
+import darkStyles from '../styles/CurrDay.darkStyle.js';
 
 class CurrDay extends React.Component {
 	_isMounted = false;
@@ -25,6 +27,7 @@ class CurrDay extends React.Component {
 		}
 		this.username = this.props.navigation.state.params.username;
 		this.token = this.props.navigation.state.params.token;
+		this.visible = this.props.navigation.state.params.visible;
 	}
 	
 	//ensure no updating state on unmounted components
@@ -156,18 +159,18 @@ class CurrDay extends React.Component {
 	}	
 	
 	//base code for getting the graph of the summaries
-	outputGraphs(percentage, sum, goal, unit, desc) {
+	outputGraphs(percentage, sum, goal, unit, desc, thisSize, thisColor, innerTxt, textGraph) {
 		return(
 			<View style={styles.container}>
-				<ProgressCircle style={{ height: 135, width: 135 }} progressColor={'#6327AD'} backgroundColor={'#E85B30'} progress={percentage} />
-				<View style={styles.innerText}>
-					<Text style={styles.textGraph}>
+				<ProgressCircle style={{ height: thisSize, width: thisSize }} progressColor={thisColor} backgroundColor={'#E85B30'} progress={percentage} />
+				<View style={innerTxt}>
+					<Text style={textGraph}>
 						{(percentage * 100).toFixed()}%
 					</Text>
-					<Text style={styles.textGraph}>
+					<Text style={textGraph}>
 						{sum} / {goal} {unit}
 					</Text>
-					<Text style={styles.textGraph}>
+					<Text style={textGraph}>
 						{desc}
 					</Text>
 				</View>
@@ -181,6 +184,90 @@ class CurrDay extends React.Component {
 			return 0.0;
 		} else {
 			return (sum / goal);
+		}
+	}
+	
+	//helper function for outputSummary(), returns different styles based on accessibility
+	outputHelper(txtDesc, btn, btnText, totalActivities, totalMeals, durationProgress, sumDuration,
+		calBurnProgress, sumCalBurn, carbProgress, sumCarbs, calGainProgress, sumCalGain,
+		fatProgress, sumFat, proteinProgress, sumProtein) {
+			
+		//arrange graphs 1 by 1 if accessibility is enabled
+		if(this.visible) {
+			return(
+				<React.Fragment>
+				<Text style={txtDesc}>
+					{totalActivities}, {totalMeals}
+				</Text>
+				<View style={styles.row}>
+					{this.outputGraphs(durationProgress, sumDuration, this.state.dailyActivity, "min", "Activity Duration", 300, 'black', darkStyles.innerText, darkStyles.textGraph)}
+				</View>
+				<View style={styles.row}>
+					{this.outputGraphs(calBurnProgress, sumCalBurn, this.state.dailyCalories, "burned", "Calories Burned", 300, 'black', darkStyles.innerText, darkStyles.textGraph)}
+				</View>
+				<View style={styles.row}>
+					{this.outputGraphs(carbProgress, sumCarbs, this.state.dailyCarbs, "eaten", "Carbohydrates", 300, 'black', darkStyles.innerText, darkStyles.textGraph)}
+				</View>
+				<View style={styles.row}>
+					{this.outputGraphs(calGainProgress, sumCalGain, this.state.dailyCalories, "eaten", "Calories Gained", 300, 'black', darkStyles.innerText, darkStyles.textGraph)}
+				</View>
+				<View style={styles.row}>
+					{this.outputGraphs(fatProgress, sumFat, this.state.dailyFat, "eaten", "Fat", 300, 'black', darkStyles.innerText, darkStyles.textGraph)}
+				</View>
+				<View style={styles.row}>
+					{this.outputGraphs(proteinProgress, sumProtein, this.state.dailyProtein, "eaten", "Protein", 300, 'black', darkStyles.innerText, darkStyles.textGraph)}
+				</View>
+				<Text></Text>
+				<Text style={txtDesc}>
+					Net calorie gain: {sumCalGain - sumCalBurn}
+				</Text>
+				<Button
+					buttonStyle={btn}
+					textStyle={btnText}
+					text={"View past 7 days"}
+					onPress={() => this.props.navigation.navigate("Summary", {
+						username: this.username,
+						token: this.token,
+						visible: this.visible
+					})}
+				/>
+				</React.Fragment>
+			);
+		//arrange graphs 2 by 1 if normal view
+		} else {
+			return(
+				<React.Fragment>
+				<Text style={txtDesc}>
+					{totalActivities}, {totalMeals}
+				</Text>
+				<View style={styles.row}>
+					{this.outputGraphs(durationProgress, sumDuration, this.state.dailyActivity, "min", "Activity Duration", 135, '#6327AD', styles.innerText, styles.textGraph)}
+					{this.outputGraphs(calBurnProgress, sumCalBurn, this.state.dailyCalories, "burned", "Calories Burned", 135, '#6327AD', styles.innerText, styles.textGraph)}
+				</View>
+				<View style={styles.row}>
+					{this.outputGraphs(carbProgress, sumCarbs, this.state.dailyCarbs, "eaten", "Carbohydrates", 135, '#6327AD', styles.innerText, styles.textGraph)}
+					{this.outputGraphs(calGainProgress, sumCalGain, this.state.dailyCalories, "eaten", "Calories Gained", 135, '#6327AD', styles.innerText, styles.textGraph)}
+				</View>
+				<View style={styles.row}>
+					{this.outputGraphs(fatProgress, sumFat, this.state.dailyFat, "eaten", "Fat", 135, '#6327AD', styles.innerText, styles.textGraph)}
+					{this.outputGraphs(proteinProgress, sumProtein, this.state.dailyProtein, "eaten", "Protein", 135, '#6327AD', styles.innerText, styles.textGraph)}
+				</View>
+				<Text></Text>
+				<Text style={txtDesc}>
+					Net calorie gain: {sumCalGain - sumCalBurn}
+				</Text>
+				<Button
+					buttonStyle={btn}
+					textStyle={btnText}
+					text={"View past 7 days"}
+					onPress={() => this.props.navigation.navigate("Summary", {
+						username: this.username,
+						token: this.token,
+						visible: this.visible
+					})}
+				/>
+				</React.Fragment>
+			);
 		}
 	}
 	
@@ -271,38 +358,17 @@ class CurrDay extends React.Component {
 			let totalMeals = pluralize('meal', numMeals, true);
 			
 			//GET ALL GRAPHS
-			return(
-				<React.Fragment>
-				<Text style={styles.textDesc}>
-					{totalActivities}, {totalMeals}
-				</Text>
-				<View style={styles.row}>
-					{this.outputGraphs(durationProgress, sumDuration, this.state.dailyActivity, "min", "Activity Duration")}
-					{this.outputGraphs(calBurnProgress, sumCalBurn, this.state.dailyCalories, "burned", "Calories Burned")}
-				</View>
-				<View style={styles.row}>
-					{this.outputGraphs(carbProgress, sumCarbs, this.state.dailyCarbs, "eaten", "Carbohydrates")}
-					{this.outputGraphs(calGainProgress, sumCalGain, this.state.dailyCalories, "eaten", "Calories Gained")}
-				</View>
-				<View style={styles.row}>
-					{this.outputGraphs(fatProgress, sumFat, this.state.dailyFat, "eaten", "Fat")}
-					{this.outputGraphs(proteinProgress, sumProtein, this.state.dailyProtein, "eaten", "Protein")}
-				</View>
-				<Text></Text>
-				<Text style={styles.textDesc}>
-					Net calorie gain: {sumCalGain - sumCalBurn}
-				</Text>
-				<Button
-					buttonStyle={styles.button}
-					textStyle={styles.buttonText}
-					text={"View past 7 days"}
-					onPress={() => this.props.navigation.navigate("Summary", {
-						username: this.username,
-						token: this.token
-					})}
-				/>
-				</React.Fragment>
-			);
+			if(this.visible) {
+				return (
+					this.outputHelper(darkStyles.textDesc, darkStyles.button, darkStyles.buttonText, totalActivities, totalMeals, durationProgress, sumDuration,
+						calBurnProgress, sumCalBurn, carbProgress, sumCarbs, calGainProgress, sumCalGain, fatProgress, sumFat, proteinProgress, sumProtein)
+				);
+			} else {
+				return (
+					this.outputHelper(styles.textDesc, styles.button, styles.buttonText, totalActivities, totalMeals, durationProgress, sumDuration,
+						calBurnProgress, sumCalBurn, carbProgress, sumCarbs, calGainProgress, sumCalGain, fatProgress, sumFat, proteinProgress, sumProtein)
+				);
+			}
 		}
 	}
 	
@@ -323,49 +389,92 @@ class CurrDay extends React.Component {
 		}
 	}
 	
-	render() {
-		if(this._isMounted) {
+	//reorganize navigation controls if accessibility is enabled
+	navControls(setContainer, setBtn, btnSize, btnColor, prevContainer, nextContainer) {
+		if(this.visible) {
+			return (
+				<React.Fragment>
+					<View style={styles.row}>
+						{/*Prev date*/}
+						<TouchableOpacity
+							onPress={() => this.incrementDate(false)}
+							style={setBtn}
+						>
+							<Ionicons name="md-arrow-dropleft-circle" size={btnSize} color={btnColor} />
+						</TouchableOpacity>
+						{/*Settings*/}
+						<TouchableOpacity
+							onPress={() => this.props.navigation.navigate("Settings", {
+								username: this.username,
+								token: this.token,
+								visible: this.visible
+						})}
+							style={setBtn}
+						>
+							<Ionicons name="md-settings" size={btnSize} color={btnColor} />
+						</TouchableOpacity>
+						{/*Next date*/}
+						<TouchableOpacity
+							onPress={() => this.incrementDate(true)}
+							style={setBtn}
+						>
+							<Ionicons name="md-arrow-dropright-circle" size={btnSize} color={btnColor} />
+						</TouchableOpacity>
+					</View>
+					<Text></Text>
+				</React.Fragment>
+			);
+		} else {
+			return (
+				<React.Fragment>
+					{/*Navigate to settings*/}
+					<View style={setContainer}>
+						<TouchableOpacity
+							onPress={() => this.props.navigation.navigate("Settings", {
+								username: this.username,
+								token: this.token,
+								visible: this.visible
+						})}
+							style={setBtn}
+						>
+							<Ionicons name="md-settings" size={btnSize} color={btnColor} />
+						</TouchableOpacity>
+					</View>
+					
+					{/*Date navigators*/}
+					<View style={prevContainer}>
+						<TouchableOpacity
+							onPress={() => this.incrementDate(false)}
+						>
+							<Ionicons name="md-arrow-dropleft-circle" size={btnSize} color={btnColor} />
+						</TouchableOpacity>
+					</View>
+					<View style={nextContainer}>
+						<TouchableOpacity
+							onPress={() => this.incrementDate(true)}
+						>
+							<Ionicons name="md-arrow-dropright-circle" size={btnSize} color={btnColor} />
+						</TouchableOpacity>
+					</View>
+				</React.Fragment>
+			);
+		}
+	}
+	
+	//render() function, dependent on styles or darkStyles depending on if accessibility is enabled
+	returnRender(container, setContainer, setBtn, btnSize, btnColor, prevContainer, nextContainer, txtTitle, scrollView, txtStyle, btn, btnText) {
 		return (
-			<View style={styles.container}>
-				{/*Navigate to settings*/}
-				<View style={styles.settingsContainer}>
-					<TouchableOpacity
-						onPress={() => this.props.navigation.navigate("Settings", {
-							username: this.username,
-							token: this.token
-					})}
-						style={styles.settingButton}
-					>
-						<Ionicons name="md-settings" size={40} color={'#27ADA0'} />
-					</TouchableOpacity>
-				</View>
-				
-				{/*Date navigators*/}
-				<View style={styles.prevDateContainer}>
-					<TouchableOpacity
-						onPress={() => this.incrementDate(false)}
-						style={styles.backButton}
-					>
-						<Ionicons name="md-arrow-dropleft-circle" size={40} color={'#27ADA0'} />
-					</TouchableOpacity>
-				</View>
-				<View style={styles.nextDateContainer}>
-					<TouchableOpacity
-						onPress={() => this.incrementDate(true)}
-						style={styles.backButton}
-					>
-						<Ionicons name="md-arrow-dropright-circle" size={40} color={'#27ADA0'} />
-					</TouchableOpacity>
-				</View>
-				
-				<Text style={styles.textTitle}>
+			<View style={container}>				
+				<Text style={txtTitle}>
 					{this.state.date.toDateString()}
 				</Text>
 				
-				<ScrollView style={styles.scrollView} contentContainerStyle={{ alignItems: 'center' }}>
+				{this.navControls(setContainer, setBtn, btnSize, btnColor, prevContainer, nextContainer)}
+				
+				<ScrollView style={scrollView} contentContainerStyle={{ alignItems: 'center' }}>
 					{/*Summary section*/}
 					<View style={styles.row}>
-						<Text style={styles.textStyle}>
+						<Text style={txtStyle}>
 							Summary 
 						</Text>
 					</View>
@@ -376,118 +485,51 @@ class CurrDay extends React.Component {
 				{/*Buttons for activities or meals*/}
 				<View style={styles.row}>
 					<Button
-						buttonStyle={styles.button}
-						textStyle={styles.buttonText}
+						buttonStyle={btn}
+						textStyle={btnText}
 						text={"View activities"}
 						onPress={() => this.props.navigation.navigate("ViewActivities", {
 							token: this.token,
-							date: this.state.date
+							date: this.state.date,
+							visible: this.visible
 						})}
 					/>
 					<Button
-						buttonStyle={styles.button}
-						textStyle={styles.buttonText}
+						buttonStyle={btn}
+						textStyle={btnText}
 						text={"View meals"}
 						onPress={() => this.props.navigation.navigate("ViewMeals", {
 							token: this.token,
 							date: this.state.date,
 							foods: this.state.foods,
-							fromHome: true
+							fromHome: true,
+							visible: this.visible
 						})}
 					/>
 
 				</View>
 			</View>
 		);
+	}
+	
+	render() {
+		if(this._isMounted) {
+			//if accessibility is enabled:
+			if(this.visible) {
+				return(
+					this.returnRender(darkStyles.container, darkStyles.settingsContainer, darkStyles.settingButton, 100, '#1a1a1a', darkStyles.prevDateContainer,
+						darkStyles.nextDateContainer, darkStyles.textTitle, darkStyles.scrollView, darkStyles.textStyle, darkStyles.button, darkStyles.buttonText)
+				);
+			} else {
+				return(
+					this.returnRender(styles.container, styles.settingsContainer, styles.settingButton, 40, '#27ADA0', styles.prevDateContainer,
+						styles.nextDateContainer, styles.textTitle, styles.scrollView, styles.textStyle, styles.button, styles.buttonText)
+				);
+			}
 		} else {
 			return(<View></View>);
 		}
 	}
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center'
-	}, 
-	settingsContainer: {
-		position: 'absolute',
-		top: 70,
-		right: 10
-	},
-	settingButton: {
-		alignItems: 'center',
-		width: 50,
-		height: 50
-	},
-	prevDateContainer: {
-		position: 'absolute',
-		top: Dimensions.get('window').height * 0.5,
-		left: 10
-	},
-	nextDateContainer: {
-		position: 'absolute',
-		top: Dimensions.get('window').height * 0.5,
-		right: 10
-	},
-	innerText: {
-		position: 'absolute',
-		top: 30,
-	},
-	button: {
-		width: 200,
-		height: 50,
-		margin: 10,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 5,
-		backgroundColor: '#27ADA0',
-	}, 
-	activityButton: {
-		width: Dimensions.get('window').width * 0.7,
-		height: 100,
-		margin: 10,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 5,
-		backgroundColor: '#6327AD',
-	},
-	buttonText: {
-		fontSize: 18,
-		fontWeight: '300',
-		color: 'white',
-		textAlign: 'center'
-	},
-	textTitle: {
-		fontSize: 30,
-		color: '#27ADA0',
-		padding: 20,
-		fontWeight: 'bold',
-		textDecorationLine: 'underline'
-	},
-	textStyle: {
-		fontSize: 25,
-		color: '#27ADA0',
-		padding: 2
-	},
-	textDesc: {
-		fontSize: 18,
-		color: '#6327AD',
-		padding: 5
-	},
-	textGraph: {
-		textAlign: 'center',
-		fontSize: 16,
-		color: '#217A1C'
-	},
-	row: {
-		flexDirection: 'row'
-	},
-	scrollView: {
-		flex: 1,
-		width: Dimensions.get('window').width * 0.8
-	}
-})
 
 export default CurrDay;
