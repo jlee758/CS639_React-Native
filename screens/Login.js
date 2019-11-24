@@ -94,7 +94,7 @@ class Login extends React.Component {
 					</TouchableOpacity>
 				</View>
 				<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-					<KeyboardAvoidingView style={container} behavior="padding" enabled>
+					<KeyboardAvoidingView behavior="padding" enabled>
 						<TextInput
 							style={txtInput}
 							placeholder="Username"

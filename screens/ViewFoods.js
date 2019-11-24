@@ -26,6 +26,7 @@ class ViewFoods extends React.Component {
 			sumFat: 0,
 			sumProtein: 0
 		}
+		this.username = this.props.navigation.state.params.username;
 		this.token = this.props.navigation.state.params.token;
 		this.mealName = this.props.navigation.state.params.currName;
 		this.id = this.props.navigation.state.params.currId;
@@ -288,7 +289,7 @@ class ViewFoods extends React.Component {
 			} else {
 				return (
 					this.returnRender(styles.backButtonContainer, styles.backButton, 40, '#27ADA0', styles.settingsContainer, styles.settingButton,
-						styles.textTitle, styles.textStyle, styles.button, styles.buttonText, styles.foodButton, styles.buttonText, styles.textDesc)
+						styles.textTitle, styles.textStyle, styles.buttonViewFoods, styles.buttonText, styles.foodButton, styles.buttonText, styles.textDesc)
 				);
 			}
 		} else {

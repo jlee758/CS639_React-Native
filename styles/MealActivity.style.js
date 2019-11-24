@@ -35,6 +35,16 @@ export default StyleSheet.create({
 		borderRadius: 5,
 		backgroundColor: '#27ADA0'
 	}, 
+	buttonViewFoods: {
+		flex: 1,
+		width: 200,
+		height: 50,
+		margin: 10,
+		justifyContent: 'center',
+		alignItems: 'center',
+		borderRadius: 5,
+		backgroundColor: '#27ADA0'
+	}, 
 	activityButton: {
 		width: Dimensions.get('window').width * 0.7,
 		height: 100,

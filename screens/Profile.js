@@ -165,11 +165,20 @@ class Profile extends React.Component {
 		}
 		return ([firstName + " " + lastName]);
 	}
-
-	//render() method, dependent on whether accessibility is enabled, changes styles accordingly
-	returnRender(backBtnContainer, backBtn, btnSize, btnColor, textStyle, styleItem, sectionHeader, btn, btnText, textInput) {
-		return (
-			<View style={styles.container}>
+	
+	//if accessibility is enabled, place backwards button directly underneath title for consistency
+	navControls(backBtnContainer, backBtn, btnSize, btnColor) {
+		if(this.visible) {
+			return (
+				<TouchableOpacity
+					onPress={() => this.props.navigation.goBack()}
+					style={backBtn}
+				>
+					<Ionicons name="md-arrow-back" size={btnSize} color={btnColor} />
+				</TouchableOpacity>
+			);
+		} else {
+			return (
 				<View style={backBtnContainer}>
 					<TouchableOpacity
 						onPress={() => this.props.navigation.goBack()}
@@ -178,9 +187,21 @@ class Profile extends React.Component {
 						<Ionicons name="md-arrow-back" size={btnSize} color={btnColor} />
 					</TouchableOpacity>
 				</View>
+			);
+		}
+	}
+
+	//render() method, dependent on whether accessibility is enabled, changes styles accordingly
+	returnRender(backBtnContainer, backBtn, btnSize, btnColor, textStyle, styleItem, sectionHeader, btn, btnText, textInput) {
+		return (
+			<View style={styles.container}>
 				<Text style={textStyle}>
-					Profile{'\n'}
+					Profile
 				</Text>
+				
+				{this.navControls(backBtnContainer, backBtn, btnSize, btnColor)}
+				
+				<ScrollView style={darkStyles.scrollView} contentContainerStyle={{ alignItems: 'center' }}>
 				<SectionList
 					contentContainerStyle={{ flex: 1 }}
 					sections={[
@@ -197,6 +218,7 @@ class Profile extends React.Component {
 					renderSectionHeader={({section}) => <Text style={sectionHeader}>{section.title}</Text>}
 					keyExtractor={(item, index) => index}
 				/>
+				</ScrollView>
 				<Button
 					buttonStyle={btn}
 					textStyle={btnText}

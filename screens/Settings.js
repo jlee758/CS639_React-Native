@@ -77,10 +77,19 @@ class Settings extends React.Component {
 		);
 	}
 	
-	//render() method, dependent on styles whether accessibility is enabled
-	returnRender(container, backBtnContainer, backBtn, btnSize, btnColor, textStyle, btn, btnText, btnDanger) {
-		return (
-			<View style={container}>
+	//if accessibility is enabled, place backwards button directly underneath title for consistency
+	navControls(backBtnContainer, backBtn, btnSize, btnColor) {
+		if(this.visible) {
+			return (
+				<TouchableOpacity
+					onPress={() => this.props.navigation.goBack()}
+					style={backBtn}
+				>
+					<Ionicons name="md-arrow-back" size={btnSize} color={btnColor} />
+				</TouchableOpacity>
+			);
+		} else {
+			return (
 				<View style={backBtnContainer}>
 					<TouchableOpacity
 						onPress={() => this.props.navigation.goBack()}
@@ -89,9 +98,20 @@ class Settings extends React.Component {
 						<Ionicons name="md-arrow-back" size={btnSize} color={btnColor} />
 					</TouchableOpacity>
 				</View>
+			);
+		}
+	}
+	
+	//render() method, dependent on styles whether accessibility is enabled
+	returnRender(container, backBtnContainer, backBtn, btnSize, btnColor, textStyle, btn, btnText, btnDanger) {
+		return (
+			<View style={container}>
 				<Text style={textStyle}>
 					Settings
 				</Text>
+				
+				{this.navControls(backBtnContainer, backBtn, btnSize, btnColor)}
+				
 				<Button
 					buttonStyle={btn}
 					textStyle={btnText}

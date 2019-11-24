@@ -334,6 +334,8 @@ class Foods extends React.Component {
 								{this.getInput("Carbohydrates", "numeric", "none", "carbs", String(this.state.carbs), String(this.state.carbs), txtInputContainer, inputTitleStyle, txtInput)}
 								{this.getInput("Protein", "numeric", "none", "protein", String(this.state.protein), String(this.state.protein), txtInputContainer, inputTitleStyle, txtInput)}
 								{this.getInput("Fat", "numeric", "none", "fat", String(this.state.fat), String(this.state.fat), txtInputContainer, inputTitleStyle, txtInput)}
+								{/*Add whitespace for if keyboardAvoidingView doesn't work on some phones, to allow users to scroll up to see input*/}
+								<Ionicons name="md-remove" size={200} color={'white'} />
 							</KeyboardAvoidingView>
 						</TouchableWithoutFeedback>
 					</ScrollView>

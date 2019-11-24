@@ -31,6 +31,7 @@ export default StyleSheet.create({
 		top: 30,
 	},
 	button: {
+		flex: 1,
 		width: 200,
 		height: 50,
 		margin: 10,

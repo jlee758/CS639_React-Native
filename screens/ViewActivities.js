@@ -22,6 +22,7 @@ class ViewActivities extends React.Component {
 			activities: {},
 			message: {}
 		}
+		this.username = this.props.navigation.state.params.username;
 		this.token = this.props.navigation.state.params.token;
 		this.typeUpdate = this.props.navigation.state.params.typeUpdate;
 		this.date = this.props.navigation.state.params.date;

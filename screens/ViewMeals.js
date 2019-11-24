@@ -23,6 +23,7 @@ class ViewMeals extends React.Component {
 			foods: this.props.navigation.state.params.foods,
 			message: {},
 		}
+		this.username = this.props.navigation.state.params.username;
 		this.token = this.props.navigation.state.params.token;
 		this.typeUpdate = this.props.navigation.state.params.typeUpdate;
 		this.date = this.props.navigation.state.params.date;
@@ -136,6 +137,7 @@ class ViewMeals extends React.Component {
 									textStyle={innerBtnText}
 									text={name + "\n" + date + " (" + hour + ":" + min + ")\n" + sumCalGain + " cal\n" + sumCarbs + " carbohydrates\n" + sumFat + " fat\n" + sumProtein + " protein"}
 									onPress={() => this.props.navigation.navigate("ViewFoods", {
+										username: this.username,
 										token: this.token,
 										currId: id,
 										currName: name,

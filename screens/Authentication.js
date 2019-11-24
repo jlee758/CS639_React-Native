@@ -23,7 +23,7 @@ class Authentication extends React.Component {
 	//confirm if the user wants to toggle accessibility features for this app
 	enableAccessibility() {
 		Alert.alert (
-			'Accessibility', 'Do you want to toggle visual aids for this app?',
+			'Accessibility', 'Do you want to toggle visual aids for this app? This can only be toggled at this screen!',
 			[ 
 				{text: 'No', style: 'cancel'},
 				{text: 'Yes', onPress: () => this.changeAccess()} 

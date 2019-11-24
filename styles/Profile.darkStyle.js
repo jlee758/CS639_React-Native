@@ -15,7 +15,7 @@ export default StyleSheet.create({
 		fontSize: 35,
 		fontWeight: 'bold',
 		color: '#1a1a1a',
-		padding: 20
+		padding: 10
 	},
 	button: {
 		width: 300,

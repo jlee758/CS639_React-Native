@@ -68,7 +68,8 @@ export default StyleSheet.create({
 		textAlign: 'center'
 	},
 	innerButtonText: {
-		fontSize: 30,
+		flex: 1,
+		fontSize: 28,
 		fontWeight: '300',
 		color: 'white',
 		textAlign: 'center',

@@ -21,6 +21,7 @@ export default StyleSheet.create({
 		height: 50
 	},
 	button: {
+		flex: 1,
 		width: 200,
 		height: 50,
 		margin: 10,
@@ -30,6 +31,7 @@ export default StyleSheet.create({
 		backgroundColor: '#27ADA0'
 	}, 
 	buttonDanger: {
+		flex: 1,
 		width: 200,
 		height: 50,
 		margin: 10,

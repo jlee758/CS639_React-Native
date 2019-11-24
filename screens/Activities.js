@@ -328,7 +328,7 @@ class Activities extends React.Component {
 				<View style={styles.container}>
 					<ScrollView style={scrollView} contentContainerStyle={{ alignItems: 'center' }}>
 						<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-							<KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
+							<KeyboardAvoidingView behavior="padding" enabled>
 								{this.getInput("Activity Name", "default", "words", "activityName", this.state.activityName, this.state.activityName, txtInputContainer, inputTitleStyle, txtInput)}
 								<View style={txtInputContainer}>
 									{/*DatePicker*/}
@@ -369,6 +369,8 @@ class Activities extends React.Component {
 								</View>
 								{this.getInput("Duration (minutes)", "numeric", "none", "activityDuration", String(this.state.activityDuration), String(this.state.activityDuration), txtInputContainer, inputTitleStyle, txtInput)}
 								{this.getInput("Calories", "numeric", "none", "activityCalories", String(this.state.activityCalories), String(this.state.activityCalories), txtInputContainer, inputTitleStyle, txtInput)}
+								{/*Add whitespace for if keyboardAvoidingView doesn't work on some phones, to allow users to scroll up to see input*/}
+								<Ionicons name="md-remove" size={200} color={'white'} />
 							</KeyboardAvoidingView>
 						</TouchableWithoutFeedback>
 					</ScrollView>

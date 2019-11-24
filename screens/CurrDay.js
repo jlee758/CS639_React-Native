@@ -489,6 +489,7 @@ class CurrDay extends React.Component {
 						textStyle={btnText}
 						text={"View activities"}
 						onPress={() => this.props.navigation.navigate("ViewActivities", {
+							username: this.username,
 							token: this.token,
 							date: this.state.date,
 							visible: this.visible
@@ -499,6 +500,7 @@ class CurrDay extends React.Component {
 						textStyle={btnText}
 						text={"View meals"}
 						onPress={() => this.props.navigation.navigate("ViewMeals", {
+							username: this.username,
 							token: this.token,
 							date: this.state.date,
 							foods: this.state.foods,
